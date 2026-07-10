@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_FileManagerQml_FILE /home/mrdeun/Workspace/padphin/build/FileManagerQml)
+set(__QT_DEPLOY_TARGET_FileManagerQml_TYPE EXECUTABLE)

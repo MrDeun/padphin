@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="/FileManager">/home/mrdeun/Workspace/padphin/build/FileManager</file>
+
+  </qresource>
+</RCC>

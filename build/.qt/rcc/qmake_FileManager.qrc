@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/FileManager">
+    <file alias="qmldir">/home/mrdeun/Workspace/padphin/build/FileManager/qmldir</file>
+  </qresource>
+</RCC>
+

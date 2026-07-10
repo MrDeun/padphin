@@ -1,0 +1,11 @@
+{
+    packages = {
+        "/home/mrdeun/.xmake/packages/u/util-macros/1.20.0/21ebacb0450b4b16b06b586ecc142d3f",
+        "/home/mrdeun/.xmake/packages/x/xtrans/1.6.0/588d85a9c99148b8ae87dee11b39ab40",
+        "/home/mrdeun/.xmake/packages/c/ca-certificates/20250131/e9ba281ae183402a80dc072d4d571c20",
+        "/home/mrdeun/.xmake/packages/p/python/3.13.11/239f32c224c54650ba786eb3af8c9a66",
+        "/home/mrdeun/.xmake/packages/x/xcb-proto/1.17.0/eafb62cb3f37412ebe648eb0ab4b4b35",
+        "/home/mrdeun/.xmake/packages/l/libxdmcp/1.1.5/a6cb092dadef40c2ad61859651220fa2",
+        "/home/mrdeun/.xmake/packages/e/expat/2.7.4/1660df25c9bb4d4ea6d2339b3c994ddf"
+    }
+}

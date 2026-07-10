@@ -1,0 +1,14 @@
+-rootPath
+/home/mrdeun/Workspace/padphin
+-cmake-output
+-output-file
+/home/mrdeun/Workspace/padphin/build/.qt/qml_imports/FileManagerQml_conf.cmake
+-importPath
+/home/mrdeun/Workspace/padphin/build
+-importPath
+/home/mrdeun/Workspace/padphin/build/FileManager
+-importPath
+/usr/lib64/qt6/qml
+-qrcFiles
+/home/mrdeun/Workspace/padphin/build/.qt/rcc/qmake_FileManager.qrc
+/home/mrdeun/Workspace/padphin/build/.qt/rcc/FileManagerQml_raw_qml_0.qrc

@@ -1,0 +1,7 @@
+--resource
+/home/mrdeun/Workspace/padphin/build/.qt/rcc/qmake_FileManager.qrc
+--resource
+/home/mrdeun/Workspace/padphin/build/.qt/rcc/FileManagerQml_raw_qml_0.qrc
+/FileManager/qml/Main.qml
+/FileManager/qml/Sidebar.qml
+/FileManager/qml/FileGrid.qml
