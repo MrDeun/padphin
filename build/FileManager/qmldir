@@ -1,8 +1,0 @@
-module FileManager
-typeinfo FileManagerQml.qmltypes
-prefer :/FileManager/
-Main 1.0 qml/Main.qml
-Sidebar 1.0 qml/Sidebar.qml
-FileGrid 1.0 qml/FileGrid.qml
-depends QtQuick
-

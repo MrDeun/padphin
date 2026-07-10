@@ -1,1 +1,0 @@
-/home/mrdeun/Workspace/padphin/build/FileManagerQml_autogen/include/../UVLADIE3JM/moc_FileOperations.cpp.json

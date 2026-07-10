@@ -1,8 +1,0 @@
-<RCC>
-  <qresource prefix="/FileManager/">
-    <file alias="qml/Main.qml">/home/mrdeun/Workspace/padphin/qml/Main.qml</file>
-    <file alias="qml/Sidebar.qml">/home/mrdeun/Workspace/padphin/qml/Sidebar.qml</file>
-    <file alias="qml/FileGrid.qml">/home/mrdeun/Workspace/padphin/qml/FileGrid.qml</file>
-  </qresource>
-</RCC>
-
