@@ -45,6 +45,7 @@
         "xmake run",
         "xmake run",
         "xmake check",
-        "xmake run"
+        "xmake run",
+        "xmake l /home/mrdeun/.vscode-oss/extensions/tboox.xmake-vscode-2.5.4-universal/assets/explorer.lua"
     }
 }
