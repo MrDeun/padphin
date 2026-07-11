@@ -8,7 +8,8 @@ ApplicationWindow {
     width: 1000
     height: 650
     visible: true
-    title: "File Manager — " + currentPath
+    title: "Padphin — " + currentPath
+    
 
     property string currentPath: fileOps.homePath()
 

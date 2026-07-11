@@ -1,17 +1,25 @@
 #include "FileOperations.h"
+#include "QGamepadManager.h"
+#include "qlogging.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-
+#include <QQmlContext>
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
-
-  QQmlApplicationEngine engine;
+  SdlGamepadManager manager;
 
   qmlRegisterType<FileOperations>("FileManager", 1, 0, "FileOperations");
+  qmlRegisterUncreatableType<SdlGamepad>("SdlQtGamepad", 1, 0, "SdlGamepad",
+                                         "Created by SdlGamepadManager");
+  qmlRegisterUncreatableType<SdlGamepadManager>(
+      "SdlQtGamepad", 1, 0, "SdlGamepadManager",
+      "Create one instance in C++ and expose it as a context property");
 
-  // Matches the URI set in qt_add_qml_module() in CMakeLists.txt.
-  // Resource path mirrors the source path given to QML_FILES, so
-  // qml/Main.qml (on disk) -> qrc:/qt/qml/FileManager/qml/Main.qml.
+  if (!manager.start())
+    qWarning("Gamepad manager failure...");
+
+  QQmlApplicationEngine engine;
+  engine.rootContext()->setContextProperty("GamepadManager", &manager);
   const QUrl url(QStringLiteral("qrc:/Main.qml"));
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
