@@ -14,8 +14,7 @@ GamepadLegend::GamepadLegend(const QString &svgDir, QWidget *parent)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents);
     setStyleSheet(
-        "background-color: rgba(51,51,51,204);"
-        "border-radius: 8px;"
+        "background: transparent;"
     );
 
     auto *mainLayout = new QVBoxLayout(this);

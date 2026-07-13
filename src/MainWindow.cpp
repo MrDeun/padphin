@@ -105,10 +105,10 @@ void MainWindow::setupUI()
 
     setCentralWidget(splitter);
 
-    m_statusLabel = new QLabel(m_currentPath, this);
-    statusBar()->addWidget(m_statusLabel);
-
     {
+        m_statusLabel = new QLabel(m_currentPath, this);
+        statusBar()->addWidget(m_statusLabel);
+
         const QString subdir = QStringLiteral("/resources/Xbox Series/Vector");
         QStringList candidates = {
             QDir::currentPath() + subdir,
@@ -121,6 +121,7 @@ void MainWindow::setupUI()
             if (QDir(c).exists()) { svgDir = c; break; }
         }
         m_legend = new GamepadLegend(svgDir, this);
+        statusBar()->addPermanentWidget(m_legend);
     }
 
     setMinimumSize(800, 500);
@@ -131,13 +132,6 @@ void MainWindow::setupUI()
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
-    if (m_legend) {
-        m_legend->adjustSize();
-        m_legend->move(
-            width() - m_legend->width() - 16,
-            height() - m_legend->height() - statusBar()->height() - 16
-        );
-    }
 }
 
 void MainWindow::connectCurrentGamepad()
@@ -320,27 +314,27 @@ void MainWindow::handleGamepadButton(SdlGamepad::Button button)
     if (!m_pad) return;
 
     switch (button) {
-    case SdlGamepad::ButtonSouth:
+    case SdlGamepad::Button::ButtonSouth:
         if (m_focusedPanel == "grid")
             m_fileGrid->activateCurrent();
         else
             m_sidebar->activateCurrent();
         break;
-    case SdlGamepad::ButtonEast:
+    case SdlGamepad::Button::ButtonEast:
         goBack();
         break;
-    case SdlGamepad::ButtonWest:
+    case SdlGamepad::Button::ButtonWest:
         onNewFolder();
         break;
-    case SdlGamepad::ButtonNorth:
+    case SdlGamepad::Button::ButtonNorth:
         if (!m_selectedPath.isEmpty())
             onRename();
         break;
-    case SdlGamepad::ButtonStart:
+    case SdlGamepad::Button::ButtonStart:
         if (!m_selectedPath.isEmpty())
             onDelete();
         break;
-    case SdlGamepad::ButtonBack:
+    case SdlGamepad::Button::ButtonBack:
         if (m_focusedPanel == "grid") {
             m_focusedPanel = "sidebar";
         } else {
@@ -348,23 +342,23 @@ void MainWindow::handleGamepadButton(SdlGamepad::Button button)
             m_fileGrid->forceFocus();
         }
         break;
-    case SdlGamepad::ButtonLeftShoulder:
+    case SdlGamepad::Button::ButtonLeftShoulder:
         goUp();
         break;
-    case SdlGamepad::ButtonRightShoulder:
+    case SdlGamepad::Button::ButtonRightShoulder:
         goForward();
         break;
-    case SdlGamepad::ButtonDpadDown:
+    case SdlGamepad::Button::ButtonDpadDown:
         doNavigate("down");
         break;
-    case SdlGamepad::ButtonDpadUp:
+    case SdlGamepad::Button::ButtonDpadUp:
         doNavigate("up");
         break;
-    case SdlGamepad::ButtonDpadLeft:
+    case SdlGamepad::Button::ButtonDpadLeft:
         if (m_focusedPanel == "grid")
             m_fileGrid->navigateLeft();
         break;
-    case SdlGamepad::ButtonDpadRight:
+    case SdlGamepad::Button::ButtonDpadRight:
         if (m_focusedPanel == "grid")
             m_fileGrid->navigateRight();
         break;

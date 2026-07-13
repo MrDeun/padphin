@@ -12,13 +12,12 @@ FileGridWidget::FileGridWidget(QWidget *parent)
 
     m_model = new QFileSystemModel(this);
     m_model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    m_model->setRootPath(QDir::homePath());
 
     m_listView = new QListView(this);
     m_listView->setModel(m_model);
     m_listView->setViewMode(QListView::IconMode);
-    m_listView->setIconSize(QSize(48, 48));
-    m_listView->setGridSize(QSize(96, 96));
+    m_listView->setIconSize(QSize(48*2, 48*2));
+    m_listView->setGridSize(QSize(96*2, 96*2));
     m_listView->setMovement(QListView::Static);
     m_listView->setResizeMode(QListView::Adjust);
     m_listView->setSelectionMode(QAbstractItemView::SingleSelection);
