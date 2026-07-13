@@ -95,6 +95,8 @@ Roughly in order of how likely you are to want them:
    file-type icons, either bundle an icon theme as an image provider, or add
    a `Q_INVOKABLE QString iconForFile(const QString &path)` to
    `FileOperations` that maps extensions to bundled `.svg`/`.png` assets.
+   Icons are provided by [kenneynl's icon pack](https://kenney.nl/assets/input-prompts) —
+   a comprehensive set of file-type icons for QML applications.
 3. **Thumbnails for images** — swap the icon `Rectangle` for an `Image`
    element with `source: fileIsDir ? "" : fileOps.pathToUrl(filePath)` when
    the file is a recognized image type; Qt will decode and cache it via its
@@ -130,3 +132,39 @@ Roughly in order of how likely you are to want them:
   paths and the `file://` URLs `FolderListModel` expects — avoid
   string-concatenating `"file://" + path` yourself, it breaks on Windows
   drive letters and paths with special characters.
+## Legend
+
+### Toolbar buttons
+
+| Button | Action |
+|--------|--------|
+| `←` | Go back to the previous directory in history |
+| `→` | Go forward in history |
+| `↑` | Go up one directory level |
+| Address bar | Type a path and press Enter to navigate |
+| `New Folder` | Create a new subfolder in the current directory |
+| `Rename` | Rename the currently selected file or folder |
+| `Delete` | Permanently delete the selected item(s) |
+
+### Gamepad controls
+
+| Button | Action |
+|--------|--------|
+| A (South) | Activate / open selected item |
+| B (East) | Go back |
+| X (West) | New Folder |
+| Y (North) | Rename selected item |
+| Start | Delete selected item |
+| Back / Select | Toggle focus between sidebar and grid |
+| L1 (Left Shoulder) | Go up one directory level |
+| R1 (Right Shoulder) | Go forward in history |
+| D-Pad | Navigate grid / sidebar |
+| Left stick | Navigate grid / sidebar (with auto-repeat) |
+
+### Sidebar
+
+| Item | Action |
+|------|--------|
+| Home | Navigate to the home directory |
+| Desktop | Navigate to the desktop folder |
+| Documents | Navigate to the Documents folder |

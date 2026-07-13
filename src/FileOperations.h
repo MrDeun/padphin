@@ -1,16 +1,11 @@
 #pragma once
 
 #include <QObject>
-#include <QQmlEngine>
+#include <QUrl>
 
-// FolderListModel (used on the QML side for browsing) is read-only, so
-// mutating operations — creating folders, renaming, deleting — go through
-// this small helper instead. Register it as a QML singleton-ish instantiable
-// type via QML_ELEMENT and just create one instance in Main.qml.
 class FileOperations : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
 
 public:
     using QObject::QObject;

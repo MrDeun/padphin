@@ -1,4 +1,3 @@
-#include "qqmllist.h"
 #include "QGamepadManager.h"
 
 #include <QDebug>
@@ -50,13 +49,6 @@ void SdlGamepadManager::stop()
         SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
         m_sdlInitialized = false;
     }
-}
-
-QQmlListProperty<SdlGamepad> SdlGamepadManager::gamepads()
-{
-    // Convenience constructor: read-only list property backed directly by a QList<T*>.
-    // Qt handles count()/at() for us; we just keep m_gamepadList in sync.
-    return QQmlListProperty<SdlGamepad>(this, &m_gamepadList);
 }
 
 void SdlGamepadManager::poll()

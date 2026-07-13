@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>FileGrid.qml</file>
-        <file>Sidebar.qml</file>
-        <file>Main.qml</file>
-        <file>GamepadDemo.qml</file>
-    </qresource>
-</RCC>

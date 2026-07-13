@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <QMap>
 #include <QList>
-#include <QQmlListProperty>
 #include <SDL3/SDL.h>
 
 #include "QGamepad.h"
@@ -18,8 +17,6 @@
 class SdlGamepadManager : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<SdlGamepad> gamepads READ gamepads NOTIFY gamepadsChanged)
-    Q_PROPERTY(SdlGamepad *primaryGamepad READ primaryGamepad NOTIFY gamepadsChanged)
 
 public:
     explicit SdlGamepadManager(QObject *parent = nullptr);
@@ -29,7 +26,7 @@ public:
     bool start(int pollIntervalMs = 16);
     void stop();
 
-    QQmlListProperty<SdlGamepad> gamepads();
+    QList<SdlGamepad *> gamepads() const { return m_gamepadList; }
     // Convenience for simple single-controller UIs: first connected gamepad, or nullptr.
     SdlGamepad *primaryGamepad() const { return m_gamepadList.isEmpty() ? nullptr : m_gamepadList.first(); }
 
