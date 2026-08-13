@@ -1,0 +1,10 @@
+- [x] Load a current path's contents
+- [ ] Rendering a singular item
+- [ ] Navigation of a folder
+- [ ] Distinction between a file and a directory
+- [ ] Perform a action on a file
+- [ ] Create an empty file (?)
+- [ ] Burger menu for selecting a specific action (copy, move, delete)
+- [ ] Selection mode
+- [ ] Submenu for shortcuts 
+- [ ] Icons for specifc extensions (pngs, video, audio, executables)
