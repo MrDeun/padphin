@@ -6,6 +6,8 @@ add_requires("sfml","fmt")
 target("padphin")
     add_packages("sfml","fmt")
     set_kind("binary")
+    add_includedirs("src/include")
+    add_files("src/lib/*.cpp")
     add_files("src/*.cpp")
 
 --
