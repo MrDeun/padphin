@@ -1,16 +1,19 @@
 #pragma once
 #include "SFML/Graphics/RectangleShape.hpp"
+#include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/Graphics/Text.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <vector>
 
 namespace fs = std::filesystem;
 class App {
-  enum class Dir { None, Up, Down, Left, Right };
+  enum class Dir: uint8_t { None, Up, Down, Left, Right };
 
-  fs::path current_path;
+  Dir current_direction = Dir::None;
+  fs::path current_path = ".";
   std::vector<fs::directory_entry> entries;
   size_t selected_index = 0;
   sf::Text cell_label;
@@ -41,7 +44,9 @@ public:
     current_path = new_path;
     populate_entries();
   }
+  
   const fs::path &get_current_path() const { return current_path; }
+  void update_state();
   void event_loop(sf::RenderWindow& win);
-  void render(sf::RenderWindow &win);
+  sf::RenderTexture render();
 };

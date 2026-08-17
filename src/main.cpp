@@ -1,6 +1,7 @@
 #include "SFML/Graphics/Font.hpp"
 #include "include/App.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 #include <fmt/base.h>
 #include <fmt/ranges.h>
@@ -10,21 +11,22 @@
 
 namespace fs = std::filesystem;
 
-void event_loop(sf::Window &win, App& app) {
-
-}
-
 int main(int argc, char **argv) {
-  sf::RenderWindow win(sf::VideoMode({1920, 1080}),
+  sf::RenderWindow win(sf::VideoMode({2560, 1440}),
                        "Padphin - File Explorer for a gamepad");
+  win.setFramerateLimit(24);
   fs::path begin_path(".");
   sf::Font font("jetbrains.ttf");
   App app(font);
   app.go_to(begin_path);
   while (win.isOpen()) {
     app.event_loop(win);
+    app.update_state();
     win.clear(sf::Color(30, 30, 30));
-    app.render(win);
+    auto tex = app.render();
+    tex.display();
+    sf::Sprite sprite(tex.getTexture());
+    win.draw(sprite);
     win.display();
   }
   fmt::println("hello world!");
