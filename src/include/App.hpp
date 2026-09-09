@@ -24,6 +24,11 @@ class App {
   static constexpr float header_height = 48.0f;
   static constexpr float footer_height = 32.0f;
 
+  // Big gamepad-friendly rows.
+  static constexpr float item_height = 54.0f;
+  static constexpr float item_font_scale = 1.4f;
+  static constexpr float item_spacing_y = 6.0f;
+
   // Miller-column width ratios: parent | current | preview (ranger defaults
   // to a narrow parent, wider current + preview).
   static constexpr float parent_ratio = 0.22f;
