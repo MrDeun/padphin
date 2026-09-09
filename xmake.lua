@@ -1,14 +1,18 @@
 add_rules("mode.debug", "mode.release")
 
-add_languages("c++17")
-add_requires("sfml","fmt")
+add_languages("c++20")
+add_requires("imgui", {configs = {glfw = true, opengl3 = true}})
+add_requires("fmt")
 
 target("padphin")
-    add_packages("sfml","fmt")
+    add_packages("imgui", "fmt")
     set_kind("binary")
     add_includedirs("src/include")
     add_files("src/lib/*.cpp")
     add_files("src/*.cpp")
+    if is_plat("linux") then
+        add_syslinks("GL")
+    end
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
