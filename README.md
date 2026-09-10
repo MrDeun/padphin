@@ -41,4 +41,12 @@ xmake run padphin
 
 ## License
 
-See `resources/font/LICENSE.txt` for font licensing.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Credits
+
+- [Dear ImGui](https://github.com/ocornut/imgui) - Immediate Mode Graphical User Interface (MIT License)
+- [fmt](https://github.com/fmtlib/fmt) - A modern formatting library (MIT License)
+- [nanosvg](https://github.com/memononen/nanosvg) - Simple stupid SVG parser (zlib License)
+- [Press Start 2P](https://zone38.net/font/) - Retro bitmap font (SIL Open Font License 1.1)
+- [Kenney Input Prompts](https://www.kenney.nl/assets/input-prompts) - Gamepad and keyboard icons (CC0 1.0 Universal)
