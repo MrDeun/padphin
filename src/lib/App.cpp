@@ -8,10 +8,20 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unistd.h>
 
 namespace {
 
-std::string display_name(const fs::directory_entry &e, bool &out_is_dir) {
+std::string get_exe_dir() {
+  char buf[4096];
+  ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (len == -1)
+    return ".";
+  buf[len] = '\0';
+  return fs::path(buf).parent_path().string();
+}
+
+auto display_name = [](const fs::directory_entry &e, bool &out_is_dir) {
   std::error_code ec;
   out_is_dir = e.is_directory(ec);
   std::string name = e.path().filename().string();
@@ -20,7 +30,7 @@ std::string display_name(const fs::directory_entry &e, bool &out_is_dir) {
   if (out_is_dir)
     name += "/";
   return name;
-}
+};
 
 auto name_less = [](const fs::directory_entry &a,
                     const fs::directory_entry &b) -> bool {
@@ -53,6 +63,23 @@ std::string human_size(std::uintmax_t bytes) {
   return fmt::format("{:.1f} {}", size, units[unit]);
 }
 
+std::string find_resource(const std::string &relative) {
+  // Try common locations relative to the executable.
+  std::string exe_dir = get_exe_dir();
+
+  std::string candidates[] = {
+      exe_dir + "/resources/" + relative,
+      exe_dir + "/../resources/" + relative,
+      exe_dir + "/../../resources/" + relative,
+  };
+  for (const auto &c : candidates) {
+    std::error_code ec;
+    if (fs::is_regular_file(c, ec))
+      return c;
+  }
+  return "";
+}
+
 } // namespace
 
 std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
@@ -67,7 +94,55 @@ std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
     out.push_back(*it);
   }
   std::sort(out.begin(), out.end(), name_less);
-  return out;
+  return std::move(out);
+}
+
+void App::load_icons() {
+  auto load = [this](const std::string &rel) -> Icon {
+    std::string path = find_resource(rel);
+    if (path.empty())
+      return {};
+    return icon_loader_.load(path, icon_scale);
+  };
+  
+  // Keyboard icons.
+  icon_arrow_up_ =
+      load("icon/kenney/keyboard/keyboard_arrow_up_outline.svg");
+  icon_arrow_down_ =
+      load("icon/kenney/keyboard/keyboard_arrow_down_outline.svg");
+  icon_arrow_left_ =
+      load("icon/kenney/keyboard/keyboard_arrow_left_outline.svg");
+  icon_arrow_right_ =
+      load("icon/kenney/keyboard/keyboard_arrow_right_outline.svg");
+  icon_enter_ = load("icon/kenney/keyboard/keyboard_return_outline.svg");
+  icon_escape_ = load("icon/kenney/keyboard/keyboard_escape_outline.svg");
+  
+  // Gamepad icons (using generic gamepad button icons).
+  icon_gamepad_up_ =
+      load("icon/kenney/gamepad/generic_stick_up.svg");
+  icon_gamepad_down_ =
+      load("icon/kenney/gamepad/generic_stick_down.svg");
+  icon_gamepad_left_ =
+      load("icon/kenney/gamepad/generic_stick_left.svg");
+  icon_gamepad_right_ =
+      load("icon/kenney/gamepad/generic_stick_right.svg");
+  icon_gamepad_accept_ =
+      load("icon/kenney/gamepad/generic_button_trigger_a.svg");
+  icon_gamepad_deny_ =
+      load("icon/kenney/gamepad/generic_button_trigger_b.svg");
+}
+
+void App::refresh_preview() {
+  preview_entries.clear();
+  preview_is_dir = false;
+  if (!entries.empty() && selected_index < entries.size()) {
+    const auto &sel = entries[selected_index];
+    std::error_code dec;
+    if (sel.is_directory(dec) && !dec) {
+      preview_is_dir = true;
+      preview_entries = list_dir(sel.path());
+    }
+  }
 }
 
 void App::populate_entries() {
@@ -96,17 +171,10 @@ void App::populate_entries() {
   }
 
   // Preview column (ranger's right pane): children of the selected dir.
-  preview_entries.clear();
-  preview_is_dir = false;
   if (!entries.empty()) {
     if (selected_index >= entries.size())
       selected_index = entries.size() - 1;
-    const auto &sel = entries[selected_index];
-    std::error_code dec;
-    if (sel.is_directory(dec) && !dec) {
-      preview_is_dir = true;
-      preview_entries = list_dir(sel.path());
-    }
+    refresh_preview();
   } else {
     selected_index = 0;
   }
@@ -139,91 +207,51 @@ void App::go_to(fs::path new_path) {
       }
     }
     // Refresh preview for the restored selection.
-    preview_entries.clear();
-    preview_is_dir = false;
-    if (!entries.empty() && selected_index < entries.size()) {
-      const auto &sel = entries[selected_index];
-      std::error_code dec;
-      if (sel.is_directory(dec) && !dec) {
-        preview_is_dir = true;
-        preview_entries = list_dir(sel.path());
-      }
-    }
+    refresh_preview();
     selection_changed = true;
   }
 }
 
-void App::poll_input() {
-  auto left = ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false);
-  auto right = ImGui::IsKeyPressed(ImGuiKey_RightArrow, false);
-  auto up = ImGui::IsKeyPressed(ImGuiKey_UpArrow, false);
-  auto down = ImGui::IsKeyPressed(ImGuiKey_DownArrow, false);
-
-  int hor_direction = right - left;
-  int ver_direction = up - down;
-
-  if (!hor_direction) {
-    if (ver_direction == 1) {
-      current_direction = Dir::Up;
-    } else if (ver_direction == -1) {
-      current_direction = Dir::Down;
-    } else {
-      current_direction = Dir::None;
-    }
-  } else {
-    if (hor_direction == 1) {
-      current_direction = Dir::Right;
-    } else if (hor_direction == -1) {
-      current_direction = Dir::Left;
-    }
-  }
-}
+void App::poll_input() { last_input = control_->poll(); }
 
 void App::update_state() {
+  Dir dir = last_input.dir;
+  uint8_t btn = last_input.button;
+
   if (entries.empty()) {
-    // Still allow navigating up out of an empty directory.
-    if (current_direction == Dir::Left) {
+    if (dir == Dir::Left || (btn & Input::DENY)) {
       fs::path parent = current_path.parent_path();
       if (!parent.empty() && parent != current_path)
         go_to(parent);
     }
-    current_direction = Dir::None;
     return;
   }
 
-  switch (current_direction) {
+  switch (dir) {
   case Dir::None:
     break;
   case Dir::Up:
-    // ranger: move selection up.
     selected_index =
         (selected_index == 0) ? entries.size() - 1 : selected_index - 1;
     selection_changed = true;
-    populate_entries();
-    // populate_entries() keeps selected_index (clamps only) and refreshes
-    // the preview for the new selection; re-assert the moved index in case
-    // the directory changed on disk between frames.
     if (selected_index >= entries.size() && !entries.empty())
       selected_index = entries.size() - 1;
+    refresh_preview();
     break;
   case Dir::Down:
-    // ranger: move selection down.
     selected_index = (selected_index + 1) % entries.size();
     selection_changed = true;
-    populate_entries();
     if (selected_index >= entries.size() && !entries.empty())
       selected_index = entries.size() - 1;
+    refresh_preview();
     break;
-  case Dir::Left:
-    // ranger: go to parent directory.
-    {
-      fs::path parent = current_path.parent_path();
-      if (!parent.empty() && parent != current_path)
-        go_to(parent);
-    }
+  case Dir::Left: {
+    fs::path parent = current_path.parent_path();
+    if (!parent.empty() && parent != current_path)
+      go_to(parent);
     break;
+  }
   case Dir::Right: {
-    // ranger: enter highlighted directory.
     const auto &sel = entries[selected_index];
     std::error_code ec;
     if (sel.is_directory(ec) && !ec) {
@@ -234,11 +262,23 @@ void App::update_state() {
     break;
   }
   }
-  // populate_entries() above may have overwritten selected_index for Up/Down
-  // because it clamps; fix by re-applying movement against fresh size would
-  // be wrong. Instead handle Up/Down without full repopulate clobbering:
-  // (recompute preview only). The simplest correct approach: recompute here.
-  current_direction = Dir::None;
+
+  if (btn & Input::ACCEPT) {
+    const auto &sel = entries[selected_index];
+    std::error_code ec;
+    if (sel.is_directory(ec) && !ec) {
+      current_path = sel.path();
+      selected_index = 0;
+      populate_entries();
+    }
+  }
+  if (btn & Input::DENY) {
+    fs::path parent = current_path.parent_path();
+    if (!parent.empty() && parent != current_path)
+      go_to(parent);
+  }
+
+  last_input = {};
 }
 
 void App::render_header(const ImVec2 &window_pos, float window_width) {
@@ -422,7 +462,7 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
           ImGui::TextDisabled("%s", sel.path().filename().string().c_str());
           ImGui::Separator();
           bool scrolled = true; // preview list starts at top, like ranger
-          render_entry_list("##preview_list", preview_entries, -1, false,
+          render_entry_list("##preview_list", preview_entries, selected_index, false,
                             &scrolled);
         } else {
           render_file_preview("##file_preview", sel);
@@ -444,20 +484,69 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
                 ImVec2(window_pos.x + window_size.x, footer_y),
                 IM_COL32(70, 70, 70, 255));
 
-  std::string status;
-  if (entries.empty()) {
-    status = "empty  |  Up/Down: select  Left: parent  Right: open";
-  } else {
+  const ImU32 tint = IM_COL32_WHITE;
+  float icon_size = footer_height - 6.0f;
+  float x = window_pos.x + padding;
+  float text_y = footer_y + (footer_height - ImGui::GetFontSize()) / 2.0f;
+  float icon_y = footer_y + (footer_height - icon_size) / 2.0f;
+  float spacing = 5.0f;
+  float sep_color = IM_COL32(90, 90, 90, 255);
+
+  // Left section: file index and name.
+  if (!entries.empty()) {
     bool is_dir = false;
     std::string name = display_name(entries[selected_index], is_dir);
-    status = fmt::format("{} / {}  {}  |  Up/Down: select  Left: parent  "
-                         "Right: open",
-                         selected_index + 1, entries.size(), name);
+    std::string pos_str =
+        fmt::format("{} / {}  {}", selected_index + 1, entries.size(), name);
+    draw->AddText(ImVec2(x, text_y), IM_COL32(180, 180, 180, 255),
+                  pos_str.c_str());
+    x += ImGui::CalcTextSize(pos_str.c_str()).x + padding;
   }
-  draw->AddText(
-      ImVec2(window_pos.x + padding,
-             footer_y + (footer_height - ImGui::GetFontSize()) / 2.0f),
-      IM_COL32(180, 180, 180, 255), status.c_str());
+
+  // Separator.
+  draw->AddLine(ImVec2(x, footer_y + 6.0f), ImVec2(x, footer_y + footer_height - 6.0f),
+                sep_color);
+  x += padding;
+
+  // Determine which icon set to use based on last input device.
+  DeviceType device = control_->get_device_type();
+  bool use_gamepad = (device == DeviceType::Gamepad);
+
+  // Navigation hints with icons.
+  auto draw_icon_hint = [&](Icon &keyboard_icon, Icon &gamepad_icon, const char *label) {
+    Icon &icon = use_gamepad ? gamepad_icon : keyboard_icon;
+    if (icon.texture_id) {
+      draw->AddImage((ImTextureID)(intptr_t)icon.texture_id,
+                     ImVec2(x, icon_y), ImVec2(x + icon_size, icon_y + icon_size),
+                     ImVec2(0, 0), ImVec2(1, 1), tint);
+      x += icon_size + spacing;
+    }
+    draw->AddText(ImVec2(x, text_y), IM_COL32(160, 160, 160, 255), label);
+    x += ImGui::CalcTextSize(label).x + padding * 2;
+  };
+
+  draw_icon_hint(icon_arrow_up_, icon_gamepad_up_, "Up");
+  draw_icon_hint(icon_arrow_down_, icon_gamepad_down_, "Down");
+  draw_icon_hint(icon_arrow_left_, icon_gamepad_left_, "Parent");
+  draw_icon_hint(icon_arrow_right_, icon_gamepad_right_, "Open");
+
+  // Separator.
+  draw->AddLine(ImVec2(x, footer_y + 6.0f), ImVec2(x, footer_y + footer_height - 6.0f),
+                sep_color);
+  x += padding;
+
+  // Action hints.
+  draw_icon_hint(icon_enter_, icon_gamepad_accept_, "Accept");
+  draw_icon_hint(icon_escape_, icon_gamepad_deny_, "Back");
+
+  // Right section: device info.
+  std::string device_name = control_->get_device_name();
+  if (!device_name.empty()) {
+    float text_width = ImGui::CalcTextSize(device_name.c_str()).x;
+    draw->AddText(
+        ImVec2(window_pos.x + window_size.x - text_width - padding, text_y),
+        IM_COL32(120, 120, 120, 255), device_name.c_str());
+  }
 }
 
 void App::render() {
@@ -478,7 +567,12 @@ void App::render() {
   ImVec2 columns_origin(window_pos.x, window_pos.y + header_height);
   ImVec2 columns_avail(window_size.x,
                        window_size.y - header_height - footer_height);
+  ImGui::GetWindowDrawList()->PushClipRect(
+      columns_origin,
+      ImVec2(columns_origin.x + columns_avail.x,
+             columns_origin.y + columns_avail.y));
   render_miller_columns(columns_origin, columns_avail);
+  ImGui::GetWindowDrawList()->PopClipRect();
 
   render_footer(window_pos, window_size);
 

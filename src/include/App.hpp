@@ -1,20 +1,23 @@
 #pragma once
+#include "IconLoader.hpp"
+#include "IControl.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <vector>
 
 struct ImVec2;
 
 namespace fs = std::filesystem;
 class App {
-  enum class Dir : uint8_t { None, Up, Down, Left, Right };
-
-  Dir current_direction = Dir::None;
+  std::unique_ptr<IControl> control_;
+  Input last_input{};
   fs::path current_path = ".";
-  std::vector<fs::directory_entry> entries;         // current directory
-  std::vector<fs::directory_entry> parent_entries;  // parent directory
-  std::vector<fs::directory_entry> preview_entries; // children of selection
+  std::vector<fs::directory_entry> entries{};         // current directory
+  std::vector<fs::directory_entry> parent_entries{};  // parent directory
+  std::vector<fs::directory_entry> preview_entries{}; // children of selection
+  std::vector<fs::path> clipboard{};
   bool preview_is_dir = false;
   size_t selected_index = 0;
   size_t parent_highlight = 0; // index in parent_entries matching current_path
@@ -35,7 +38,30 @@ class App {
   static constexpr float current_ratio = 0.38f;
   static constexpr float preview_ratio = 0.40f;
 
+  // Footer icon scale factor.
+  static constexpr float icon_scale = 2.0f;
+
+  IconLoader icon_loader_;
+
+  // Loaded icon textures for the footer hints.
+  Icon icon_arrow_up_;
+  Icon icon_arrow_down_;
+  Icon icon_arrow_left_;
+  Icon icon_arrow_right_;
+  Icon icon_enter_;
+  Icon icon_escape_;
+
+  // Gamepad icon textures.
+  Icon icon_gamepad_up_;
+  Icon icon_gamepad_down_;
+  Icon icon_gamepad_left_;
+  Icon icon_gamepad_right_;
+  Icon icon_gamepad_accept_;
+  Icon icon_gamepad_deny_;
+
+  void load_icons();
   void populate_entries();
+  void refresh_preview();
   static std::vector<fs::directory_entry> list_dir(const fs::path &path);
 
   void render_header(const ImVec2 &window_pos, float window_width);
@@ -53,4 +79,9 @@ public:
   void poll_input();
   void update_state();
   void render();
+
+  explicit App(std::unique_ptr<IControl> control)
+      : control_(std::move(control)) {
+    load_icons();
+  }
 };

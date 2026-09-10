@@ -1,11 +1,12 @@
 add_rules("mode.debug", "mode.release")
 
 add_languages("c++20")
-add_requires("imgui", {configs = {glfw = true, opengl3 = true}})
+add_requires("imgui", {configs = {sdl2 = true, opengl3 = true}})
 add_requires("fmt")
+add_requires("nanosvg")
 
 target("padphin")
-    add_packages("imgui", "fmt")
+    add_packages("imgui", "fmt", "nanosvg")
     set_kind("binary")
     add_includedirs("src/include")
     add_files("src/lib/*.cpp")
@@ -13,6 +14,14 @@ target("padphin")
     if is_plat("linux") then
         add_syslinks("GL")
     end
+
+    after_build(function (target)
+        local targetdir = target:targetdir()
+        local resdir = path.join(os.projectdir(), "resources")
+        if os.isdir(resdir) then
+            os.cp(resdir, path.join(targetdir, "resources"))
+        end
+    end)
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
