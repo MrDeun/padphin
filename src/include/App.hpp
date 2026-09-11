@@ -1,4 +1,5 @@
 #pragma once
+#include "DisplaySettings.hpp"
 #include "IconLoader.hpp"
 #include "IControl.hpp"
 #include <cstddef>
@@ -27,7 +28,8 @@ class App {
   static constexpr float header_height = 48.0f;
   static constexpr float footer_height = 32.0f;
 
-  // Big gamepad-friendly rows.
+  // Big gamepad-friendly rows (baseline values at 1920x1080; scaled by
+  // DisplaySettings::ui_scale_for() of the working resolution at render).
   static constexpr float item_height = 54.0f;
   static constexpr float item_font_scale = 1.4f;
   static constexpr float item_spacing_y = 6.0f;
@@ -42,6 +44,16 @@ class App {
   static constexpr float icon_scale = 2.0f;
 
   IconLoader icon_loader_;
+
+  // UI scale derived from the working resolution (viewport WorkSize)
+  // relative to the 1080p baseline. Updated every frame in render().
+  float ui_scale_ = 1.0f;
+
+  float scaled_padding() const { return padding * ui_scale_; }
+  float scaled_header_height() const { return header_height * ui_scale_; }
+  float scaled_footer_height() const { return footer_height * ui_scale_; }
+  float scaled_item_height() const { return item_height * ui_scale_; }
+  float scaled_item_spacing_y() const { return item_spacing_y * ui_scale_; }
 
   // Loaded icon textures for the footer hints.
   Icon icon_arrow_up_;

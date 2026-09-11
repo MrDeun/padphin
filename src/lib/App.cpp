@@ -282,9 +282,11 @@ void App::update_state() {
 }
 
 void App::render_header(const ImVec2 &window_pos, float window_width) {
+  const float header_h = scaled_header_height();
+  const float pad = scaled_padding();
   ImDrawList *draw = ImGui::GetWindowDrawList();
   ImVec2 header_min = window_pos;
-  ImVec2 header_max(window_pos.x + window_width, window_pos.y + header_height);
+  ImVec2 header_max(window_pos.x + window_width, window_pos.y + header_h);
   draw->AddRectFilled(header_min, header_max, IM_COL32(38, 38, 38, 255));
   draw->AddLine(ImVec2(header_min.x, header_max.y - 1),
                 ImVec2(header_max.x, header_max.y - 1),
@@ -296,8 +298,8 @@ void App::render_header(const ImVec2 &window_pos, float window_width) {
   if (ec)
     path_str = current_path.string();
   draw->AddText(
-      ImVec2(window_pos.x + padding,
-             window_pos.y + (header_height - ImGui::GetFontSize()) / 2.0f),
+      ImVec2(window_pos.x + pad,
+             window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f),
       IM_COL32(220, 220, 220, 255), path_str.c_str());
 }
 
@@ -307,6 +309,11 @@ void App::render_entry_list(const char *child_id,
                             bool *scrolled_to_highlight) {
   // Bound the child to the remaining cell space so tall rows scroll
   // instead of growing the table.
+  // Row metrics scale with the working resolution so entries keep the same
+  // relative size on 720p / 1080p / 1440p / 4K. Font scaling comes from
+  // io.FontGlobalScale (set in render()); pixel sizes are scaled here.
+  const float row_h = scaled_item_height();
+  const float spacing_y = scaled_item_spacing_y();
   ImVec2 avail = ImGui::GetContentRegionAvail();
   if (avail.y < 1.0f)
     avail.y = 1.0f;
@@ -314,7 +321,7 @@ void App::render_entry_list(const char *child_id,
                     ImGuiWindowFlags_HorizontalScrollbar |
                         ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::SetWindowFontScale(item_font_scale);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, item_spacing_y));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, spacing_y));
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.0f, 0.5f));
   for (size_t i = 0; i < list.size(); ++i) {
     bool is_dir = false;
@@ -332,7 +339,7 @@ void App::render_entry_list(const char *child_id,
       ImGui::PushStyleColor(ImGuiCol_Header, is_active
                                                  ? IM_COL32(0, 120, 160, 255)
                                                  : IM_COL32(60, 60, 60, 255));
-    ImGui::Selectable(name.c_str(), highlighted, 0, ImVec2(0.0f, item_height));
+    ImGui::Selectable(name.c_str(), highlighted, 0, ImVec2(0.0f, row_h));
     if (highlighted)
       ImGui::PopStyleColor(); // Header
     ImGui::PopStyleColor();   // Text
@@ -474,8 +481,10 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
 }
 
 void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
+  const float footer_h = scaled_footer_height();
+  const float pad = scaled_padding();
   ImDrawList *draw = ImGui::GetWindowDrawList();
-  float footer_y = window_pos.y + window_size.y - footer_height;
+  float footer_y = window_pos.y + window_size.y - footer_h;
   draw->AddRectFilled(
       ImVec2(window_pos.x, footer_y),
       ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y),
@@ -485,11 +494,11 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
                 IM_COL32(70, 70, 70, 255));
 
   const ImU32 tint = IM_COL32_WHITE;
-  float icon_size = footer_height - 6.0f;
-  float x = window_pos.x + padding;
-  float text_y = footer_y + (footer_height - ImGui::GetFontSize()) / 2.0f;
-  float icon_y = footer_y + (footer_height - icon_size) / 2.0f;
-  float spacing = 5.0f;
+  float icon_size = footer_h - 6.0f * ui_scale_;
+  float x = window_pos.x + pad;
+  float text_y = footer_y + (footer_h - ImGui::GetFontSize()) / 2.0f;
+  float icon_y = footer_y + (footer_h - icon_size) / 2.0f;
+  float spacing = 5.0f * ui_scale_;
   float sep_color = IM_COL32(90, 90, 90, 255);
 
   // Left section: file index and name.
@@ -500,13 +509,14 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
         fmt::format("{} / {}  {}", selected_index + 1, entries.size(), name);
     draw->AddText(ImVec2(x, text_y), IM_COL32(180, 180, 180, 255),
                   pos_str.c_str());
-    x += ImGui::CalcTextSize(pos_str.c_str()).x + padding;
+    x += ImGui::CalcTextSize(pos_str.c_str()).x + pad;
   }
 
   // Separator.
-  draw->AddLine(ImVec2(x, footer_y + 6.0f), ImVec2(x, footer_y + footer_height - 6.0f),
+  draw->AddLine(ImVec2(x, footer_y + 6.0f * ui_scale_),
+                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_),
                 sep_color);
-  x += padding;
+  x += pad;
 
   // Determine which icon set to use based on last input device.
   DeviceType device = control_->get_device_type();
@@ -522,7 +532,7 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
       x += icon_size + spacing;
     }
     draw->AddText(ImVec2(x, text_y), IM_COL32(160, 160, 160, 255), label);
-    x += ImGui::CalcTextSize(label).x + padding * 2;
+    x += ImGui::CalcTextSize(label).x + pad * 2;
   };
 
   draw_icon_hint(icon_arrow_up_, icon_gamepad_up_, "Up");
@@ -531,9 +541,10 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
   draw_icon_hint(icon_arrow_right_, icon_gamepad_right_, "Open");
 
   // Separator.
-  draw->AddLine(ImVec2(x, footer_y + 6.0f), ImVec2(x, footer_y + footer_height - 6.0f),
+  draw->AddLine(ImVec2(x, footer_y + 6.0f * ui_scale_),
+                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_),
                 sep_color);
-  x += padding;
+  x += pad;
 
   // Action hints.
   draw_icon_hint(icon_enter_, icon_gamepad_accept_, "Accept");
@@ -544,13 +555,21 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
   if (!device_name.empty()) {
     float text_width = ImGui::CalcTextSize(device_name.c_str()).x;
     draw->AddText(
-        ImVec2(window_pos.x + window_size.x - text_width - padding, text_y),
+        ImVec2(window_pos.x + window_size.x - text_width - pad, text_y),
         IM_COL32(120, 120, 120, 255), device_name.c_str());
   }
 }
 
 void App::render() {
   const ImGuiViewport *viewport = ImGui::GetMainViewport();
+  // Scale entries (and chrome) from the working resolution so rows keep the
+  // same relative size across 720p / 1080p / 1440p / 4K. Font scaling is
+  // applied globally; pixel sizes use the scaled_*() helpers.
+  ui_scale_ = DisplaySettings::ui_scale_for(
+      static_cast<int>(viewport->WorkSize.x),
+      static_cast<int>(viewport->WorkSize.y));
+  ImGui::GetIO().FontGlobalScale = ui_scale_;
+
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::Begin("Padphin", nullptr,
@@ -564,9 +583,10 @@ void App::render() {
 
   render_header(window_pos, window_size.x);
 
-  ImVec2 columns_origin(window_pos.x, window_pos.y + header_height);
-  ImVec2 columns_avail(window_size.x,
-                       window_size.y - header_height - footer_height);
+  const float header_h = scaled_header_height();
+  const float footer_h = scaled_footer_height();
+  ImVec2 columns_origin(window_pos.x, window_pos.y + header_h);
+  ImVec2 columns_avail(window_size.x, window_size.y - header_h - footer_h);
   ImGui::GetWindowDrawList()->PushClipRect(
       columns_origin,
       ImVec2(columns_origin.x + columns_avail.x,
