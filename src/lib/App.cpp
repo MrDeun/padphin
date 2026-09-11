@@ -1,4 +1,5 @@
 #include "../include/App.hpp"
+#include "fmt/base.h"
 #include "fmt/core.h"
 #include "imgui.h"
 #include <algorithm>
@@ -9,8 +10,7 @@
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-namespace {
+#include <utility>
 
 std::string get_exe_dir() {
   char buf[4096];
@@ -63,7 +63,7 @@ std::string human_size(std::uintmax_t bytes) {
   return fmt::format("{:.1f} {}", size, units[unit]);
 }
 
-std::string find_resource(const std::string &relative) {
+std::string find_resource_path(const std::string &relative) {
   // Try common locations relative to the executable.
   std::string exe_dir = get_exe_dir();
 
@@ -79,8 +79,6 @@ std::string find_resource(const std::string &relative) {
   }
   return "";
 }
-
-} // namespace
 
 std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
   std::vector<fs::directory_entry> out;
@@ -99,37 +97,61 @@ std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
 
 void App::load_icons() {
   auto load = [this](const std::string &rel) -> Icon {
-    std::string path = find_resource(rel);
-    if (path.empty())
+    std::string path = find_resource_path(rel);
+    if (path.empty()) {
+      fmt::println("File not found for -> {}", rel);
       return {};
+    }
+
     return icon_loader_.load(path, icon_scale);
   };
-  
+
   // Keyboard icons.
-  icon_arrow_up_ =
-      load("icon/kenney/keyboard/keyboard_arrow_up_outline.svg");
-  icon_arrow_down_ =
-      load("icon/kenney/keyboard/keyboard_arrow_down_outline.svg");
-  icon_arrow_left_ =
-      load("icon/kenney/keyboard/keyboard_arrow_left_outline.svg");
-  icon_arrow_right_ =
-      load("icon/kenney/keyboard/keyboard_arrow_right_outline.svg");
-  icon_enter_ = load("icon/kenney/keyboard/keyboard_return_outline.svg");
-  icon_escape_ = load("icon/kenney/keyboard/keyboard_escape_outline.svg");
-  
-  // Gamepad icons (using generic gamepad button icons).
-  icon_gamepad_up_ =
-      load("icon/kenney/gamepad/generic_stick_up.svg");
-  icon_gamepad_down_ =
-      load("icon/kenney/gamepad/generic_stick_down.svg");
-  icon_gamepad_left_ =
-      load("icon/kenney/gamepad/generic_stick_left.svg");
-  icon_gamepad_right_ =
-      load("icon/kenney/gamepad/generic_stick_right.svg");
-  icon_gamepad_accept_ =
-      load("icon/kenney/gamepad/generic_button_trigger_a.svg");
-  icon_gamepad_deny_ =
-      load("icon/kenney/gamepad/generic_button_trigger_b.svg");
+  const std::string playstation_base = "icon/kenney/playstation/";
+  playstation_set = {
+      .up = load(playstation_base + "playstation_dpad_up.svg"),
+      .down = load(playstation_base + "playstation_dpad_down.svg"),
+      .left = load(playstation_base + "playstation_dpad_left.svg"),
+      .right = load(playstation_base + "playstation_dpad_right.svg"),
+      .accept = load(playstation_base + "playstation_button_cross.svg"),
+      .deny = load(playstation_base + "playstation_button_circle.svg"),
+      .add_to_clipboard =
+          load(playstation_base + "playstation_button_triangle.svg"),
+      .open_menubar = load(playstation_base + "playstation_button_square.svg"),
+  };
+  const std::string xbox_base = "icon/kenney/xbox/";
+  xbox_set = {
+      .up = load(xbox_base + "xbox_dpad_up.svg"),
+      .down = load(xbox_base + "xbox_dpad_down.svg"),
+      .left = load(xbox_base + "xbox_dpad_left.svg"),
+      .right = load(xbox_base + "xbox_dpad_right.svg"),
+      .accept = load(xbox_base + "xbox_button_a.svg"),
+      .deny = load(xbox_base + "xbox_button_b.svg"),
+      .add_to_clipboard = load(xbox_base + "xbox_button_y.svg"),
+      .open_menubar = load(xbox_base + "xbox_button_x.svg"),
+  };
+  const std::string switch_base = "icon/kenney/switch/";
+  switch_set = {
+      .up = load(switch_base + "switch_dpad_up.svg"),
+      .down = load(switch_base + "switch_dpad_down.svg"),
+      .left = load(switch_base + "switch_dpad_left.svg"),
+      .right = load(switch_base + "switch_dpad_right.svg"),
+      .accept = load(switch_base + "switch_button_b.svg"),
+      .deny = load(switch_base + "switch_button_a.svg"),
+      .add_to_clipboard = load(switch_base + "switch_button_x.svg"),
+      .open_menubar = load(switch_base + "switch_button_y.svg"),
+  };
+  const std::string keyboard_base = "icon/kenney/keyboard/";
+  switch_set = {
+      .up = load(keyboard_base + "keyboard_arrow_up.svg"),
+      .down = load(keyboard_base + "keyboard_arrow_down.svg"),
+      .left = load(keyboard_base + "keyboard_arrow_left.svg"),
+      .right = load(keyboard_base + "keyboard_arrow_right.svg"),
+      .accept = load(keyboard_base + "keyboard_enter.svg"),
+      .deny = load(keyboard_base + "keyboard_escape.svg"),
+      .add_to_clipboard = load(keyboard_base + "keyboard_c.svg"),
+      .open_menubar = load(keyboard_base + "keyboard_alt.svg"),
+  };
 }
 
 void App::refresh_preview() {
@@ -278,6 +300,11 @@ void App::update_state() {
       go_to(parent);
   }
 
+  if (btn & Input::ADD_TO_CLIPBOARD) {
+    fs::path abs = fs::absolute(entries.at(selected_index));
+    clipboard.emplace(std::move(abs));
+  }
+
   last_input = {};
 }
 
@@ -297,10 +324,17 @@ void App::render_header(const ImVec2 &window_pos, float window_width) {
     path_str = fs::absolute(current_path, ec).string();
   if (ec)
     path_str = current_path.string();
-  draw->AddText(
-      ImVec2(window_pos.x + pad,
-             window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f),
-      IM_COL32(220, 220, 220, 255), path_str.c_str());
+  draw->AddText(ImVec2(window_pos.x + pad,
+                       window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f),
+                IM_COL32(220, 220, 220, 255), path_str.c_str());
+  ImGui::NextColumn();
+  std::string text = fmt::format("Clipboard size: {}", clipboard.size());
+  auto posX = (ImGui::GetCursorPosX() + ImGui::GetColumnWidth() -
+               ImGui::CalcTextSize(text.c_str()).x - ImGui::GetScrollX() -
+               2 * ImGui::GetStyle().ItemSpacing.x);
+  if (posX > ImGui::GetCursorPosX())
+    ImGui::SetCursorPos(ImVec2(posX,window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f));
+  ImGui::Text("%s", text.c_str());
 }
 
 void App::render_entry_list(const char *child_id,
@@ -469,8 +503,8 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
           ImGui::TextDisabled("%s", sel.path().filename().string().c_str());
           ImGui::Separator();
           bool scrolled = true; // preview list starts at top, like ranger
-          render_entry_list("##preview_list", preview_entries, selected_index, false,
-                            &scrolled);
+          render_entry_list("##preview_list", preview_entries, selected_index,
+                            false, &scrolled);
         } else {
           render_file_preview("##file_preview", sel);
         }
@@ -514,41 +548,40 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
 
   // Separator.
   draw->AddLine(ImVec2(x, footer_y + 6.0f * ui_scale_),
-                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_),
-                sep_color);
+                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_), sep_color);
   x += pad;
 
   // Determine which icon set to use based on last input device.
   DeviceType device = control_->get_device_type();
-  bool use_gamepad = (device == DeviceType::Gamepad);
+  bool use_gamepad = (device == DeviceType::Xbox);
 
   // Navigation hints with icons.
-  auto draw_icon_hint = [&](Icon &keyboard_icon, Icon &gamepad_icon, const char *label) {
+  auto draw_icon_hint = [&](Icon &keyboard_icon, Icon &gamepad_icon,
+                            const char *label) {
     Icon &icon = use_gamepad ? gamepad_icon : keyboard_icon;
     if (icon.texture_id) {
-      draw->AddImage((ImTextureID)(intptr_t)icon.texture_id,
-                     ImVec2(x, icon_y), ImVec2(x + icon_size, icon_y + icon_size),
-                     ImVec2(0, 0), ImVec2(1, 1), tint);
+      draw->AddImage((ImTextureID)(intptr_t)icon.texture_id, ImVec2(x, icon_y),
+                     ImVec2(x + icon_size, icon_y + icon_size), ImVec2(0, 0),
+                     ImVec2(1, 1), tint);
       x += icon_size + spacing;
     }
     draw->AddText(ImVec2(x, text_y), IM_COL32(160, 160, 160, 255), label);
     x += ImGui::CalcTextSize(label).x + pad * 2;
   };
 
-  draw_icon_hint(icon_arrow_up_, icon_gamepad_up_, "Up");
-  draw_icon_hint(icon_arrow_down_, icon_gamepad_down_, "Down");
-  draw_icon_hint(icon_arrow_left_, icon_gamepad_left_, "Parent");
-  draw_icon_hint(icon_arrow_right_, icon_gamepad_right_, "Open");
+  draw_icon_hint(keyboard_set.up, xbox_set.up, "Up");
+  draw_icon_hint(keyboard_set.down, xbox_set.down, "Down");
+  draw_icon_hint(keyboard_set.left, xbox_set.left, "Parent");
+  draw_icon_hint(keyboard_set.right, xbox_set.right, "Open");
 
   // Separator.
   draw->AddLine(ImVec2(x, footer_y + 6.0f * ui_scale_),
-                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_),
-                sep_color);
+                ImVec2(x, footer_y + footer_h - 6.0f * ui_scale_), sep_color);
   x += pad;
 
   // Action hints.
-  draw_icon_hint(icon_enter_, icon_gamepad_accept_, "Accept");
-  draw_icon_hint(icon_escape_, icon_gamepad_deny_, "Back");
+  draw_icon_hint(keyboard_set.accept, xbox_set.accept, "Accept");
+  draw_icon_hint(keyboard_set.deny, xbox_set.deny, "Back");
 
   // Right section: device info.
   std::string device_name = control_->get_device_name();
@@ -565,9 +598,9 @@ void App::render() {
   // Scale entries (and chrome) from the working resolution so rows keep the
   // same relative size across 720p / 1080p / 1440p / 4K. Font scaling is
   // applied globally; pixel sizes use the scaled_*() helpers.
-  ui_scale_ = DisplaySettings::ui_scale_for(
-      static_cast<int>(viewport->WorkSize.x),
-      static_cast<int>(viewport->WorkSize.y));
+  ui_scale_ =
+      DisplaySettings::ui_scale_for(static_cast<int>(viewport->WorkSize.x),
+                                    static_cast<int>(viewport->WorkSize.y));
   ImGui::GetIO().FontGlobalScale = ui_scale_;
 
   ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -588,9 +621,8 @@ void App::render() {
   ImVec2 columns_origin(window_pos.x, window_pos.y + header_h);
   ImVec2 columns_avail(window_size.x, window_size.y - header_h - footer_h);
   ImGui::GetWindowDrawList()->PushClipRect(
-      columns_origin,
-      ImVec2(columns_origin.x + columns_avail.x,
-             columns_origin.y + columns_avail.y));
+      columns_origin, ImVec2(columns_origin.x + columns_avail.x,
+                             columns_origin.y + columns_avail.y));
   render_miller_columns(columns_origin, columns_avail);
   ImGui::GetWindowDrawList()->PopClipRect();
 

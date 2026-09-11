@@ -13,7 +13,7 @@ public:
     Input poll() override;
     std::string get_device_name() const override;
     bool has_device() const override;
-    DeviceType get_device_type() const override { return DeviceType::Gamepad; }
+    DeviceType get_device_type() const override { return DeviceType::Xbox; }
 
     void on_controller_connected(SDL_JoystickID which);
     void on_controller_disconnected(SDL_JoystickID which);

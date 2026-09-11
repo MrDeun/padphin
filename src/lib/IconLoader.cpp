@@ -26,7 +26,7 @@ void IconLoader::clear() {
 Icon IconLoader::load(const std::string &svg_path, float scale) {
   auto it = cache_.find(svg_path);
   if (it != cache_.end()) {
-    return {it->second.texture_id, it->second.width, it->second.height};
+    return it->second;
   }
 
   NSVGimage *image = nsvgParseFromFile(svg_path.c_str(), "px", 96);
@@ -83,5 +83,5 @@ Icon IconLoader::load(const std::string &svg_path, float scale) {
   glBindTexture(GL_TEXTURE_2D, 0);
 
   cache_[svg_path] = {tex, static_cast<float>(w), static_cast<float>(h)};
-  return {tex, static_cast<float>(w), static_cast<float>(h)};
+  return cache_[svg_path];
 }

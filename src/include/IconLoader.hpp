@@ -21,10 +21,5 @@ public:
   void clear();
 
 private:
-  struct CachedIcon {
-    uint32_t texture_id;
-    float width;
-    float height;
-  };
-  std::unordered_map<std::string, CachedIcon> cache_;
+  std::unordered_map<std::string, Icon> cache_;
 };

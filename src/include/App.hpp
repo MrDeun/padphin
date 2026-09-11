@@ -6,11 +6,27 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <set>
 #include <vector>
 
 struct ImVec2;
 
+std::string find_resource_path(const std::string&);
+
+
 namespace fs = std::filesystem;
+
+struct IconSet{
+  Icon up;
+  Icon down;
+  Icon left;
+  Icon right;
+  Icon accept;
+  Icon deny;
+  Icon add_to_clipboard;
+  Icon open_menubar;
+};
+
 class App {
   std::unique_ptr<IControl> control_;
   Input last_input{};
@@ -18,7 +34,7 @@ class App {
   std::vector<fs::directory_entry> entries{};         // current directory
   std::vector<fs::directory_entry> parent_entries{};  // parent directory
   std::vector<fs::directory_entry> preview_entries{}; // children of selection
-  std::vector<fs::path> clipboard{};
+  std::set<fs::path> clipboard{};
   bool preview_is_dir = false;
   size_t selected_index = 0;
   size_t parent_highlight = 0; // index in parent_entries matching current_path
@@ -45,6 +61,11 @@ class App {
 
   IconLoader icon_loader_;
 
+  IconSet keyboard_set;
+  IconSet playstation_set;
+  IconSet switch_set;
+  IconSet xbox_set;
+
   // UI scale derived from the working resolution (viewport WorkSize)
   // relative to the 1080p baseline. Updated every frame in render().
   float ui_scale_ = 1.0f;
@@ -56,20 +77,6 @@ class App {
   float scaled_item_spacing_y() const { return item_spacing_y * ui_scale_; }
 
   // Loaded icon textures for the footer hints.
-  Icon icon_arrow_up_;
-  Icon icon_arrow_down_;
-  Icon icon_arrow_left_;
-  Icon icon_arrow_right_;
-  Icon icon_enter_;
-  Icon icon_escape_;
-
-  // Gamepad icon textures.
-  Icon icon_gamepad_up_;
-  Icon icon_gamepad_down_;
-  Icon icon_gamepad_left_;
-  Icon icon_gamepad_right_;
-  Icon icon_gamepad_accept_;
-  Icon icon_gamepad_deny_;
 
   void load_icons();
   void populate_entries();

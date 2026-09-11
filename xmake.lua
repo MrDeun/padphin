@@ -16,11 +16,8 @@ target("padphin")
     end
 
     after_build(function (target)
-        local targetdir = target:targetdir()
-        local resdir = path.join(os.projectdir(), "resources")
-        if os.isdir(resdir) then
-            os.cp(resdir, path.join(targetdir, "resources"))
-        end
+        local outputdir = path.directory(target:targetdir())
+        os.cp("resources",outputdir)
     end)
 
 --

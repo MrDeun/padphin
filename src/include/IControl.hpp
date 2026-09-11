@@ -4,7 +4,7 @@
 #include <string>
 
 enum class Dir : uint8_t { None, Up, Down, Left, Right };
-enum class DeviceType : uint8_t { Keyboard, Gamepad, None };
+enum class DeviceType : uint8_t { Keyboard, Xbox, Switch, Playstation, None };
 
 struct Input {
     Dir dir = Dir::None;

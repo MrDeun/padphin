@@ -49,7 +49,8 @@ int main() {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = nullptr;
-  io.Fonts->AddFontFromFileTTF("resources/font/PressStart2P.ttf", 16.0f);
+  auto font_path = find_resource_path("font/PressStart2P.ttf");
+  io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f);
 
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
