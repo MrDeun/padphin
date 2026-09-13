@@ -1,17 +1,15 @@
 #include "../include/App.hpp"
-#include "fmt/base.h"
-#include "fmt/core.h"
-#include "imgui.h"
+#include "Clipboard.hpp"
+#include <imgui.h>
 #include <algorithm>
 #include <cctype>
-#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <unistd.h>
 #include <utility>
-
+// TODO - get OS-agnostic version of this function
 std::string get_exe_dir() {
   char buf[4096];
   ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
@@ -302,7 +300,7 @@ void App::update_state() {
 
   if (btn & Input::ADD_TO_CLIPBOARD) {
     fs::path abs = fs::absolute(entries.at(selected_index));
-    clipboard.emplace(std::move(abs));
+    _clipboard.append(std::move(abs));
   }
 
   last_input = {};
@@ -328,7 +326,7 @@ void App::render_header(const ImVec2 &window_pos, float window_width) {
                        window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f),
                 IM_COL32(220, 220, 220, 255), path_str.c_str());
   ImGui::NextColumn();
-  std::string text = fmt::format("Clipboard size: {}", clipboard.size());
+  std::string text = fmt::format("Clipboard size: {}", _clipboard.items.size());
   auto posX = (ImGui::GetCursorPosX() + ImGui::GetColumnWidth() -
                ImGui::CalcTextSize(text.c_str()).x - ImGui::GetScrollX() -
                2 * ImGui::GetStyle().ItemSpacing.x);

@@ -66,7 +66,7 @@ int main() {
         v.push_back(std::move(gamepad));
         return std::move(v);
       }()));
-  app.go_to(".");
+  app.go_to(fs::absolute("."));
 
   bool running = true;
   while (running) {

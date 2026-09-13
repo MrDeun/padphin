@@ -2,6 +2,7 @@
 #include "DisplaySettings.hpp"
 #include "IconLoader.hpp"
 #include "IControl.hpp"
+#include "Clipboard.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -34,7 +35,7 @@ class App {
   std::vector<fs::directory_entry> entries{};         // current directory
   std::vector<fs::directory_entry> parent_entries{};  // parent directory
   std::vector<fs::directory_entry> preview_entries{}; // children of selection
-  std::set<fs::path> clipboard{};
+  Clipboard _clipboard{};
   bool preview_is_dir = false;
   size_t selected_index = 0;
   size_t parent_highlight = 0; // index in parent_entries matching current_path
