@@ -136,8 +136,8 @@ void App::load_icons() {
       .right = load(xbox_base + "xbox_dpad_right.svg"),
       .accept = load(xbox_base + "xbox_button_a.svg"),
       .deny = load(xbox_base + "xbox_button_b.svg"),
-      .add_to_clipboard = load(xbox_base + "xbox_button_y.svg"),
-      .open_menubar = load(xbox_base + "xbox_button_x.svg"),
+      .add_to_clipboard = load(xbox_base + "xbox_button_x.svg"),
+      .open_menubar = load(xbox_base + "xbox_button_y.svg"),
   };
   // Switch icons.
   const std::string switch_base = "icon/kenney/switch/";
@@ -161,7 +161,7 @@ void App::load_icons() {
       .accept = load(keyboard_base + "keyboard_enter.svg"),
       .deny = load(keyboard_base + "keyboard_escape.svg"),
       .add_to_clipboard = load(keyboard_base + "keyboard_c.svg"),
-      .open_menubar = load(keyboard_base + "keyboard_alt.svg"),
+      .open_menubar = load(keyboard_base + "keyboard_tab.svg"),
   };
 }
 
