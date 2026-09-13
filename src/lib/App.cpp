@@ -1,22 +1,32 @@
 #include "../include/App.hpp"
 #include "Clipboard.hpp"
-#include <imgui.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <imgui.h>
 #include <string>
 #include <unistd.h>
 #include <utility>
 // TODO - get OS-agnostic version of this function
 std::string get_exe_dir() {
-  char buf[4096];
-  ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-  if (len == -1)
-    return ".";
-  buf[len] = '\0';
-  return fs::path(buf).parent_path().string();
+#ifdef _WIN32
+  wchar_t path[MAX_PATH] = {0};
+  GetModuleFileNameW(NULL, path, MAX_PATH);
+  return path;
+#else
+  char result[PATH_MAX];
+  ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+  return fs::path(result).parent_path().string();
+#endif
+
+  // char buf[4096];
+  // ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  // if (len == -1)
+  //   return ".";
+  // buf[len] = '\0';
+  // return fs::path(buf).parent_path().string();
 }
 
 auto display_name = [](const fs::directory_entry &e, bool &out_is_dir) {
@@ -104,7 +114,7 @@ void App::load_icons() {
     return icon_loader_.load(path, icon_scale);
   };
 
-  // Keyboard icons.
+  // Playstation icons.
   const std::string playstation_base = "icon/kenney/playstation/";
   playstation_set = {
       .up = load(playstation_base + "playstation_dpad_up.svg"),
@@ -117,6 +127,7 @@ void App::load_icons() {
           load(playstation_base + "playstation_button_triangle.svg"),
       .open_menubar = load(playstation_base + "playstation_button_square.svg"),
   };
+  // Xbox icons.
   const std::string xbox_base = "icon/kenney/xbox/";
   xbox_set = {
       .up = load(xbox_base + "xbox_dpad_up.svg"),
@@ -128,6 +139,7 @@ void App::load_icons() {
       .add_to_clipboard = load(xbox_base + "xbox_button_y.svg"),
       .open_menubar = load(xbox_base + "xbox_button_x.svg"),
   };
+  // Switch icons.
   const std::string switch_base = "icon/kenney/switch/";
   switch_set = {
       .up = load(switch_base + "switch_dpad_up.svg"),
@@ -139,8 +151,9 @@ void App::load_icons() {
       .add_to_clipboard = load(switch_base + "switch_button_x.svg"),
       .open_menubar = load(switch_base + "switch_button_y.svg"),
   };
+  // Keyboard icons.
   const std::string keyboard_base = "icon/kenney/keyboard/";
-  switch_set = {
+  keyboard_set = {
       .up = load(keyboard_base + "keyboard_arrow_up.svg"),
       .down = load(keyboard_base + "keyboard_arrow_down.svg"),
       .left = load(keyboard_base + "keyboard_arrow_left.svg"),
@@ -331,7 +344,8 @@ void App::render_header(const ImVec2 &window_pos, float window_width) {
                ImGui::CalcTextSize(text.c_str()).x - ImGui::GetScrollX() -
                2 * ImGui::GetStyle().ItemSpacing.x);
   if (posX > ImGui::GetCursorPosX())
-    ImGui::SetCursorPos(ImVec2(posX,window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f));
+    ImGui::SetCursorPos(
+        ImVec2(posX, window_pos.y + (header_h - ImGui::GetFontSize()) / 2.0f));
   ImGui::Text("%s", text.c_str());
 }
 
@@ -580,6 +594,10 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
   // Action hints.
   draw_icon_hint(keyboard_set.accept, xbox_set.accept, "Accept");
   draw_icon_hint(keyboard_set.deny, xbox_set.deny, "Back");
+  draw_icon_hint(keyboard_set.add_to_clipboard, xbox_set.add_to_clipboard,
+                 "Add to clipboard");
+  draw_icon_hint(keyboard_set.open_menubar, xbox_set.open_menubar,
+                 "Menu Dialog");
 
   // Right section: device info.
   std::string device_name = control_->get_device_name();

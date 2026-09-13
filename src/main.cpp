@@ -15,8 +15,20 @@
 #include <SDL2/SDL.h>
 
 #include <filesystem>
+#include <system_error>
 
-int main() {
+int main(int arg_count, char **args) {
+  fs::path initial_path = fs::absolute(".");
+  if (arg_count > 1) {
+    std::error_code ec{};
+    initial_path = fs::absolute(args[1], ec);
+    if (ec) {
+      fmt::println("WARNING: Error processioning inputted path. Defaulting to "
+                   "'.'. Reason: {}",
+                   ec.message());
+      initial_path = fs::absolute(".");
+    }
+  }
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) {
     fmt::println(stderr, "SDL_Init failed: {}", SDL_GetError());
     return 1;
@@ -26,10 +38,10 @@ int main() {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  SDL_Window *window = SDL_CreateWindow(
-      "Padphin - File Explorer for a gamepad",
-      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080,
-      SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+  SDL_Window *window =
+      SDL_CreateWindow("Padphin - File Explorer for a gamepad",
+                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920,
+                       1080, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
   if (!window) {
     fmt::println(stderr, "SDL_CreateWindow failed: {}", SDL_GetError());
     SDL_Quit();
@@ -59,14 +71,13 @@ int main() {
   auto gamepad = std::make_unique<GamepadControl>();
   GamepadControl *gamepad_ptr = gamepad.get();
 
-  App app(std::make_unique<CompositeControl>(
-      [&] {
-        std::vector<std::unique_ptr<IControl>> v;
-        v.push_back(std::make_unique<KeyboardControl>(window));
-        v.push_back(std::move(gamepad));
-        return std::move(v);
-      }()));
-  app.go_to(fs::absolute("."));
+  App app(std::make_unique<CompositeControl>([&] {
+    std::vector<std::unique_ptr<IControl>> v;
+    v.push_back(std::make_unique<KeyboardControl>(window));
+    v.push_back(std::move(gamepad));
+    return std::move(v);
+  }()));
+  app.go_to(std::move(initial_path));
 
   bool running = true;
   while (running) {
