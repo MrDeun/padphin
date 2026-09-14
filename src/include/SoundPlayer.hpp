@@ -1,6 +1,6 @@
 #pragma once
 #include <SDL2/SDL_mixer.h>
-#include <fmt/format.h>
+#include <fmtlog/fmtlog.h>
 #include <vector>
 #include <filesystem>
 
@@ -16,7 +16,7 @@ public:
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0) {
       initialized = true;
     } else {
-      fmt::println("Failed to open audio: {}", Mix_GetError());
+      logw("Failed to open audio: {}", Mix_GetError());
     }
   }
   ~SoundPlayer() {

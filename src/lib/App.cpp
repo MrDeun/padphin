@@ -3,6 +3,7 @@
 #include "DisplaySettings.hpp"
 #include "SoundPlayer.hpp"
 #include "fmt/base.h"
+#include <fmtlog/fmtlog.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -95,7 +96,7 @@ std::string find_resource_path(const std::string &relative) {
     if (fs::is_regular_file(c, ec))
       return c;
   }
-  fmt::println("ERROR: Resources folder is missing");
+  loge("Resources folder is missing");
   exit(EXIT_FAILURE);
 }
 
@@ -120,7 +121,7 @@ void App::load_icons() {
   auto load = [this](const std::string &rel) -> Icon {
     std::string path = find_resource_path(rel);
     if (path.empty()) {
-      fmt::println("File not found for -> {}", rel);
+      logw("File not found for -> {}", rel);
       return {};
     }
 

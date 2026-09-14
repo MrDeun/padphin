@@ -2,11 +2,11 @@ add_rules("mode.debug", "mode.release")
 
 add_languages("c++20")
 add_requires("libsdl2_mixer","imgui", {configs = {sdl2 = true, opengl3 = true}})
-add_requires("fmt")
+add_requires("fmtlog")
 add_requires("nanosvg")
 
 target("padphin")
-    add_packages("imgui", "fmt", "nanosvg","libsdl2_mixer")
+    add_packages("imgui", "fmtlog", "nanosvg","libsdl2_mixer")
     set_kind("binary")
     add_includedirs("src/include")
     add_files("src/lib/*.cpp")

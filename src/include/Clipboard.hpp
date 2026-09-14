@@ -1,5 +1,5 @@
 #pragma once
-#include "fmt/core.h"
+#include <fmtlog/fmtlog.h>
 #include <algorithm>
 #include <filesystem>
 #include <functional>
@@ -38,14 +38,14 @@ private:
     std::error_code ec{};
     fs::remove_all(_path, ec);
     if (ec) {
-      fmt::println("Error during remove all... {}", ec.message());
+      loge("Error during remove all... {}", ec.message());
     }
   };
   std::function<void(const fs::path &)> remove = [](const fs::path &_path) {
     std::error_code ec{};
     fs::remove(_path, ec);
     if (ec) {
-      fmt::println("Error during remove... {}", ec.message());
+      loge("Error during remove... {}", ec.message());
     }
   };
   std::vector<fs::path> _clipboard{};

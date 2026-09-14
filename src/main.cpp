@@ -9,7 +9,7 @@
 #include "include/CompositeControl.hpp"
 #include "include/KeyboardControl.hpp"
 
-#include <fmt/base.h>
+#include <fmtlog/fmtlog.h>
 #include <memory>
 
 #include <SDL2/SDL.h>
@@ -18,19 +18,22 @@
 #include <system_error>
 
 int main(int arg_count, char **args) {
+  fmtlog::setLogLevel(fmtlog::DBG);
+  fmtlog::startPollingThread();
+
   fs::path initial_path = fs::absolute(".");
   if (arg_count > 1) {
     std::error_code ec{};
     initial_path = fs::absolute(args[1], ec);
     if (ec || initial_path.has_filename()) {
-      fmt::println("WARNING: Error processioning inputted path. Defaulting to "
-                   "'.'. Reason: {}",
-                   ec.value() == 0 ? "Path is a has a filename, expected directory path" :ec.message());
+      logw("WARNING: Error processioning inputted path. Defaulting to "
+           "'.'. Reason: {}",
+           ec.value() == 0 ? "Path is a has a filename, expected directory path" :ec.message());
       initial_path = fs::absolute(".");
     }
   }
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) != 0) {
-    fmt::println(stderr, "SDL_Init failed: {}", SDL_GetError());
+    loge("SDL_Init failed: {}", SDL_GetError());
     return 1;
   }
 
@@ -43,14 +46,14 @@ int main(int arg_count, char **args) {
                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920,
                        1080, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
   if (!window) {
-    fmt::println(stderr, "SDL_CreateWindow failed: {}", SDL_GetError());
+    loge("SDL_CreateWindow failed: {}", SDL_GetError());
     SDL_Quit();
     return 1;
   }
 
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   if (!gl_context) {
-    fmt::println(stderr, "SDL_GL_CreateContext failed: {}", SDL_GetError());
+    loge("SDL_GL_CreateContext failed: {}", SDL_GetError());
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 1;

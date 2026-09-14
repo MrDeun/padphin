@@ -2,14 +2,15 @@
 #include "App.hpp"
 
 #include <SDL2/SDL_mixer.h>
+#include <fmtlog/fmtlog.h>
 
 
 size_t SoundPlayer::load_sound(const fs::path &path) {
   auto full_path = find_resource_path(path);
   auto sound = Mix_LoadWAV(full_path.c_str());
   if (!sound) {
-    fmt::println("Error: failure to load sound effect '{}' - Reason {}",
-                 path.string(), SDL_GetError());
+    loge("Error: failure to load sound effect '{}' - Reason {}",
+         path.string(), SDL_GetError());
     return -1;
   }
   sounds.push_back(sound);
@@ -22,7 +23,7 @@ void SoundPlayer::play_sound(size_t sound_id) const {
   try {
     selected_audio = sounds.at(sound_id);
   } catch (const std::exception &ex) {
-    fmt::println("Error: Requested audio was not found - ID={}", sound_id);
+    logw("Error: Requested audio was not found - ID={}", sound_id);
   }
   Mix_PlayChannel(-1, selected_audio, 1);
 }
