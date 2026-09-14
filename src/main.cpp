@@ -29,7 +29,7 @@ int main(int arg_count, char **args) {
       initial_path = fs::absolute(".");
     }
   }
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) != 0) {
     fmt::println(stderr, "SDL_Init failed: {}", SDL_GetError());
     return 1;
   }

@@ -1,6 +1,7 @@
 #include "../include/App.hpp"
 #include "Clipboard.hpp"
 #include "DisplaySettings.hpp"
+#include "SoundPlayer.hpp"
 #include "fmt/base.h"
 #include <algorithm>
 #include <cctype>
@@ -112,7 +113,9 @@ std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
   std::sort(out.begin(), out.end(), name_less);
   return std::move(out);
 }
-
+void App::load_sounds(){
+  hover_id = player.load_sound("sounds/hover.wav");
+}
 void App::load_icons() {
   auto load = [this](const std::string &rel) -> Icon {
     std::string path = find_resource_path(rel);
@@ -280,6 +283,7 @@ void App::update_state() {
     if (selected_index >= entries.size() && !entries.empty())
       selected_index = entries.size() - 1;
     refresh_preview();
+    player.play_sound(hover_id);
     break;
   case Dir::Down:
     selected_index = (selected_index + 1) % entries.size();
@@ -287,6 +291,7 @@ void App::update_state() {
     if (selected_index >= entries.size() && !entries.empty())
       selected_index = entries.size() - 1;
     refresh_preview();
+    player.play_sound(hover_id);
     break;
   case Dir::Left: {
     fs::path parent = current_path.parent_path();

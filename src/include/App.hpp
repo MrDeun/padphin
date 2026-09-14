@@ -2,6 +2,7 @@
 #include "IconLoader.hpp"
 #include "IControl.hpp"
 #include "Clipboard.hpp"
+#include "SoundPlayer.hpp"
 #include <cstddef>
 #include <filesystem>
 #include <memory>
@@ -21,6 +22,7 @@ class App {
   std::vector<fs::directory_entry> parent_entries{};  // parent directory
   std::vector<fs::directory_entry> preview_entries{}; // children of selection
   Clipboard _clipboard{};
+  SoundPlayer player{};
   bool preview_is_dir = false;
   size_t selected_index = 0;
   size_t parent_highlight = 0; // index in parent_entries matching current_path
@@ -65,6 +67,7 @@ class App {
   // Loaded icon textures for the footer hints.
 
   void load_icons();
+  void load_sounds();
   void populate_entries();
   void refresh_preview();
   static std::vector<fs::directory_entry> list_dir(const fs::path &path);
@@ -78,6 +81,10 @@ class App {
   void render_file_preview(const char *child_id, const fs::directory_entry &e);
   void render_footer(const ImVec2 &window_pos, const ImVec2 &window_size);
 
+  using SoundEffectId = size_t;
+
+  SoundEffectId hover_id;
+
 public:
   void go_to(fs::path new_path);
   const fs::path &get_current_path() const { return current_path; }
@@ -88,5 +95,6 @@ public:
   explicit App(std::unique_ptr<IControl> control)
       : control_(std::move(control)) {
     load_icons();
+    load_sounds();
   }
 };
