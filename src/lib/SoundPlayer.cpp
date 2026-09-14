@@ -24,6 +24,7 @@ void SoundPlayer::play_sound(size_t sound_id) const {
     selected_audio = sounds.at(sound_id);
   } catch (const std::exception &ex) {
     logw("Error: Requested audio was not found - ID={}", sound_id);
+    return;
   }
-  Mix_PlayChannel(-1, selected_audio, 1);
+  Mix_PlayChannel(-1, selected_audio, 0);
 }

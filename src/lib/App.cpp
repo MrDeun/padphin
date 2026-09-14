@@ -3,12 +3,12 @@
 #include "DisplaySettings.hpp"
 #include "SoundPlayer.hpp"
 #include "fmt/base.h"
-#include <fmtlog/fmtlog.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <fmtlog/fmtlog.h>
 #include <fstream>
 #include <imgui.h>
 #include <string>
@@ -114,9 +114,7 @@ std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
   std::sort(out.begin(), out.end(), name_less);
   return std::move(out);
 }
-void App::load_sounds(){
-  hover_id = player.load_sound("sounds/hover.wav");
-}
+void App::load_sounds() { hover_id = player.load_sound("sounds/hover.wav"); }
 void App::load_icons() {
   auto load = [this](const std::string &rel) -> Icon {
     std::string path = find_resource_path(rel);
@@ -296,20 +294,22 @@ void App::update_state() {
     break;
   case Dir::Left: {
     fs::path parent = current_path.parent_path();
-    if (!parent.empty() && parent != current_path)
+    if (!parent.empty() && parent != current_path) {
       go_to(parent);
+      player.play_sound(hover_id);
+    }
     break;
   }
   case Dir::Right: {
     const auto &sel = entries[selected_index];
     std::error_code ec;
     if (sel.is_directory(ec) && !ec) {
-      current_path = sel.path();
+      go_to(sel.path());
       selected_index = 0;
       populate_entries();
+      player.play_sound(hover_id);
     }
-    break;
-  }
+  } break;
   }
 
   if (btn & Input::ACCEPT) {
