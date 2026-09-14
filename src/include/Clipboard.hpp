@@ -1,11 +1,8 @@
 #pragma once
 #include "fmt/core.h"
 #include <algorithm>
-#include <cstdio>
 #include <filesystem>
 #include <functional>
-#include <iterator>
-#include <set>
 #include <system_error>
 namespace fs = std::filesystem;
 

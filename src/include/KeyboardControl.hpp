@@ -2,7 +2,6 @@
 
 #include "Gate.hpp"
 #include "IControl.hpp"
-#include "imgui.h"
 
 #include <SDL2/SDL.h>
 

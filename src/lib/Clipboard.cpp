@@ -1,8 +1,4 @@
 #include <Clipboard.hpp>
-#include <algorithm>
-#include <filesystem>
-#include <iterator>
-#include <ranges>
 
 void Clipboard::copy_files_to(const fs::path &new_path) {
   std::ranges::for_each(_clipboard, [&new_path](const fs::path &old_path) {

@@ -1,20 +1,28 @@
 #include "../include/App.hpp"
 #include "Clipboard.hpp"
+#include "DisplaySettings.hpp"
+#include "fmt/base.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <imgui.h>
 #include <string>
-#include <unistd.h>
 #include <utility>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 // TODO - get OS-agnostic version of this function
 std::string get_exe_dir() {
 #ifdef _WIN32
   wchar_t path[MAX_PATH] = {0};
   GetModuleFileNameW(NULL, path, MAX_PATH);
-  return path;
+  return fs::path(path).parent_path().string();
 #else
   char result[PATH_MAX];
   ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
@@ -29,7 +37,8 @@ std::string get_exe_dir() {
   // return fs::path(buf).parent_path().string();
 }
 
-auto display_name = [](const fs::directory_entry &e, bool &out_is_dir) {
+auto display_name = [](const fs::directory_entry &e,
+                       bool &out_is_dir) -> std::string {
   std::error_code ec;
   out_is_dir = e.is_directory(ec);
   std::string name = e.path().filename().string();
@@ -37,7 +46,7 @@ auto display_name = [](const fs::directory_entry &e, bool &out_is_dir) {
     name = e.path().string();
   if (out_is_dir)
     name += "/";
-  return name;
+  return std::move(name);
 };
 
 auto name_less = [](const fs::directory_entry &a,
@@ -59,7 +68,7 @@ auto name_less = [](const fs::directory_entry &a,
 };
 
 std::string human_size(std::uintmax_t bytes) {
-  static const char *units[] = {"B", "K", "M", "G", "T"};
+  static constexpr char units[] = {'B', 'K', 'M', 'G', 'T'};
   double size = static_cast<double>(bytes);
   int unit = 0;
   while (size >= 1024.0 && unit < 4) {
@@ -85,7 +94,8 @@ std::string find_resource_path(const std::string &relative) {
     if (fs::is_regular_file(c, ec))
       return c;
   }
-  return "";
+  fmt::println("ERROR: Resources folder is missing");
+  exit(EXIT_FAILURE);
 }
 
 std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {

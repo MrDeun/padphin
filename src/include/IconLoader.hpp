@@ -1,13 +1,25 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 struct Icon {
   uint32_t texture_id = 0;
   float width = 0.0f;
   float height = 0.0f;
 };
+
+struct IconSet{
+  Icon up;
+  Icon down;
+  Icon left;
+  Icon right;
+  Icon accept;
+  Icon deny;
+  Icon add_to_clipboard;
+  Icon open_menubar;
+};
+
 
 class IconLoader {
 public:
@@ -21,5 +33,5 @@ public:
   void clear();
 
 private:
-  std::unordered_map<std::string, Icon> cache_;
+  std::vector<uint32_t> textures_ids;
 };

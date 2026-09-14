@@ -22,10 +22,10 @@ int main(int arg_count, char **args) {
   if (arg_count > 1) {
     std::error_code ec{};
     initial_path = fs::absolute(args[1], ec);
-    if (ec) {
+    if (ec || initial_path.has_filename()) {
       fmt::println("WARNING: Error processioning inputted path. Defaulting to "
                    "'.'. Reason: {}",
-                   ec.message());
+                   ec.value() == 0 ? "Path is a has a filename, expected directory path" :ec.message());
       initial_path = fs::absolute(".");
     }
   }

@@ -1,32 +1,17 @@
 #pragma once
-#include "DisplaySettings.hpp"
 #include "IconLoader.hpp"
 #include "IControl.hpp"
 #include "Clipboard.hpp"
 #include <cstddef>
-#include <cstdint>
 #include <filesystem>
 #include <memory>
-#include <set>
 #include <vector>
 
 struct ImVec2;
 
 std::string find_resource_path(const std::string&);
 
-
 namespace fs = std::filesystem;
-
-struct IconSet{
-  Icon up;
-  Icon down;
-  Icon left;
-  Icon right;
-  Icon accept;
-  Icon deny;
-  Icon add_to_clipboard;
-  Icon open_menubar;
-};
 
 class App {
   std::unique_ptr<IControl> control_;
