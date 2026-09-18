@@ -581,7 +581,9 @@ void App::render_footer(const ImVec2 &window_pos, const ImVec2 &window_size) {
 
   // Determine which icon set to use based on last input device.
   DeviceType device = control_->get_device_type();
-  bool use_gamepad = (device == DeviceType::Xbox);
+  bool use_gamepad =
+      (device == DeviceType::Xbox || device == DeviceType::Switch ||
+       device == DeviceType::Playstation);
 
   // Navigation hints with icons.
   auto draw_icon_hint = [&](Icon &keyboard_icon, Icon &gamepad_icon,
