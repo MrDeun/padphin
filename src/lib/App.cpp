@@ -11,6 +11,7 @@
 #include <fmtlog/fmtlog.h>
 #include <fstream>
 #include <imgui.h>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -19,6 +20,21 @@
 #else
 #include <unistd.h>
 #endif
+
+std::optional<fs::path> get_home_directory() {
+  fs::path res = "";
+
+#ifdef _WIN32
+  auto cstr = getenv("HOMEPATH");
+#else
+  auto cstr = getenv("HOME");
+#endif
+  if (cstr == nullptr) {
+    return std::nullopt;
+  }
+  return cstr;
+}
+
 // TODO - get OS-agnostic version of this function
 std::string get_exe_dir() {
 #ifdef _WIN32
@@ -30,13 +46,6 @@ std::string get_exe_dir() {
   ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
   return fs::path(result).parent_path().string();
 #endif
-
-  // char buf[4096];
-  // ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-  // if (len == -1)
-  //   return ".";
-  // buf[len] = '\0';
-  // return fs::path(buf).parent_path().string();
 }
 
 auto display_name = [](const fs::directory_entry &e,

@@ -4,6 +4,27 @@
 #include <SDL2/SDL_mixer.h>
 #include <fmtlog/fmtlog.h>
 
+  SoundPlayer::SoundPlayer() {
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0) {
+      initialized = true;
+    } else {
+      logw("Failed to open audio: {}", Mix_GetError());
+    }
+  }
+  SoundPlayer::~SoundPlayer() {
+    clear();
+    if (initialized) {
+      Mix_CloseAudio();
+    }
+  }
+
+  void SoundPlayer::clear() {
+    for (auto ptr : sounds) {
+      Mix_FreeChunk(ptr);
+    }
+    sounds.clear();
+  }
+
 
 size_t SoundPlayer::load_sound(const fs::path &path) {
   auto full_path = find_resource_path(path);

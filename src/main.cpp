@@ -24,15 +24,31 @@ int main(int arg_count, char **args) {
   fs::path initial_path = fs::absolute(".");
   if (arg_count > 1) {
     std::error_code ec{};
-    initial_path = fs::absolute(args[1], ec);
+    std::string args_path = args[1];
+    if (args_path[0] == '~') {
+      auto home_dir = get_home_directory();
+      if (home_dir.has_value()) {
+        logd("{}", args_path);
+        args_path.replace(0, 1, home_dir.value());
+        args_path.append("/");
+        logd("{}", args_path);
+      } else {
+        logw("Could not find viable substitue for '~'");
+      }
+    }
+    logd("{}", args_path);
+    initial_path = fs::absolute(args_path, ec);
     if (ec || initial_path.has_filename()) {
-      logw("WARNING: Error processioning inputted path. Defaulting to "
+      logw("Error processioning provided path. Defaulting to "
            "'.'. Reason: {}",
-           ec.value() == 0 ? "Path is a has a filename, expected directory path" :ec.message());
+           ec.value() == 0 ? "Path has a filename, expected directory path"
+                           : ec.message());
       initial_path = fs::absolute(".");
     }
   }
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) != 0) {
+
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) !=
+      0) {
     loge("SDL_Init failed: {}", SDL_GetError());
     return 1;
   }
@@ -64,7 +80,7 @@ int main(int arg_count, char **args) {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = nullptr;
-  auto font_path = find_resource_path("font/PressStart2P.ttf");
+  auto font_path = find_resource_path("font/BigBlueTerm.ttf");
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f);
 
   ImGui::StyleColorsDark();

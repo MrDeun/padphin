@@ -11,6 +11,7 @@
 struct ImVec2;
 
 std::string find_resource_path(const std::string&);
+std::optional<fs::path> get_home_directory();
 
 namespace fs = std::filesystem;
 
