@@ -43,6 +43,7 @@ fs::path get_initial_path(int arg_count, char **args) {
       initial_path = fs::absolute(".");
     }
   }
+  return std::move(initial_path);
 }
 
 int main(int arg_count, char **args) {

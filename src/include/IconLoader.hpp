@@ -9,7 +9,7 @@ struct Icon {
   float height = 0.0f;
 };
 
-struct IconSet{
+struct IconSet {
   Icon up;
   Icon down;
   Icon left;
@@ -20,7 +20,6 @@ struct IconSet{
   Icon open_menubar;
 };
 
-
 class IconLoader {
 public:
   IconLoader() = default;
@@ -28,6 +27,8 @@ public:
 
   IconLoader(const IconLoader &) = delete;
   IconLoader &operator=(const IconLoader &) = delete;
+  IconLoader(IconLoader &&) = delete;
+  IconLoader &operator=(IconLoader &&) = delete;
 
   Icon load(const std::string &svg_path, float scale = 1.0f);
   void clear();

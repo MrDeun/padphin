@@ -5,7 +5,7 @@
 #include <fmtlog/fmtlog.h>
 
 SoundPlayer::SoundPlayer() {
-  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0) {
+  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 4, 2048) == 0) {
     initialized = true;
   } else {
     logw("Failed to open audio: {}", Mix_GetError());
