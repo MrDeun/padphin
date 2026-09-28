@@ -116,10 +116,10 @@ std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
   if (ec)
     return out;
   for (; it != fs::directory_iterator(); it.increment(ec)) {
-    
+
     if (ec)
       break;
-    if (it->path().stem().string().starts_with('.'))  
+    if (it->path().stem().string().starts_with('.'))
       continue;
     out.push_back(*it);
   }

@@ -15,7 +15,7 @@ IconLoader::~IconLoader() { clear(); }
 void IconLoader::clear() {
   for (auto id : textures_ids) {
     if (id) {
-      glDeleteTextures(1,&id);
+      glDeleteTextures(1, &id);
     }
   }
   textures_ids.clear();
@@ -49,12 +49,9 @@ Icon IconLoader::load(const std::string &svg_path, float scale) {
   // Premultiply alpha for OpenGL.
   for (int i = 0; i < w * h; ++i) {
     unsigned char a = pixels[i * 4 + 3];
-    pixels[i * 4 + 0] =
-        static_cast<unsigned char>(pixels[i * 4 + 0] * a / 255);
-    pixels[i * 4 + 1] =
-        static_cast<unsigned char>(pixels[i * 4 + 1] * a / 255);
-    pixels[i * 4 + 2] =
-        static_cast<unsigned char>(pixels[i * 4 + 2] * a / 255);
+    pixels[i * 4 + 0] = static_cast<unsigned char>(pixels[i * 4 + 0] * a / 255);
+    pixels[i * 4 + 1] = static_cast<unsigned char>(pixels[i * 4 + 1] * a / 255);
+    pixels[i * 4 + 2] = static_cast<unsigned char>(pixels[i * 4 + 2] * a / 255);
   }
 
   GLuint tex = 0;
@@ -64,10 +61,10 @@ Icon IconLoader::load(const std::string &svg_path, float scale) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, pixels.data());
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               pixels.data());
   glBindTexture(GL_TEXTURE_2D, 0);
 
   textures_ids.push_back(tex);
-  return {tex,static_cast<float>(w),static_cast<float>(h)};
+  return {tex, static_cast<float>(w), static_cast<float>(h)};
 }

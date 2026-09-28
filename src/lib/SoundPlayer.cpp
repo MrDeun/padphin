@@ -4,34 +4,33 @@
 #include <SDL2/SDL_mixer.h>
 #include <fmtlog/fmtlog.h>
 
-  SoundPlayer::SoundPlayer() {
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0) {
-      initialized = true;
-    } else {
-      logw("Failed to open audio: {}", Mix_GetError());
-    }
+SoundPlayer::SoundPlayer() {
+  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0) {
+    initialized = true;
+  } else {
+    logw("Failed to open audio: {}", Mix_GetError());
   }
-  SoundPlayer::~SoundPlayer() {
-    clear();
-    if (initialized) {
-      Mix_CloseAudio();
-    }
+}
+SoundPlayer::~SoundPlayer() {
+  clear();
+  if (initialized) {
+    Mix_CloseAudio();
   }
+}
 
-  void SoundPlayer::clear() {
-    for (auto ptr : sounds) {
-      Mix_FreeChunk(ptr);
-    }
-    sounds.clear();
+void SoundPlayer::clear() {
+  for (auto ptr : sounds) {
+    Mix_FreeChunk(ptr);
   }
-
+  sounds.clear();
+}
 
 size_t SoundPlayer::load_sound(const fs::path &path) {
   auto full_path = find_resource_path(path);
   auto sound = Mix_LoadWAV(full_path.c_str());
   if (!sound) {
-    loge("Error: failure to load sound effect '{}' - Reason {}",
-         path.string(), SDL_GetError());
+    loge("Error: failure to load sound effect '{}' - Reason {}", path.string(),
+         SDL_GetError());
     return -1;
   }
   sounds.push_back(sound);

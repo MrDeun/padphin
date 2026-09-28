@@ -17,10 +17,7 @@
 #include <filesystem>
 #include <system_error>
 
-int main(int arg_count, char **args) {
-  fmtlog::setLogLevel(fmtlog::DBG);
-  fmtlog::startPollingThread();
-
+fs::path get_initial_path(int arg_count, char **args) {
   fs::path initial_path = fs::absolute(".");
   if (arg_count > 1) {
     std::error_code ec{};
@@ -46,7 +43,12 @@ int main(int arg_count, char **args) {
       initial_path = fs::absolute(".");
     }
   }
+}
 
+int main(int arg_count, char **args) {
+  fmtlog::setLogLevel(fmtlog::DBG);
+  fmtlog::startPollingThread();
+  auto initial_path = get_initial_path(arg_count, args);
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) !=
       0) {
     loge("SDL_Init failed: {}", SDL_GetError());
