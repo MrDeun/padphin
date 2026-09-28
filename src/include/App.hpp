@@ -1,7 +1,7 @@
 #pragma once
-#include "IconLoader.hpp"
-#include "IControl.hpp"
 #include "Clipboard.hpp"
+#include "IControl.hpp"
+#include "IconLoader.hpp"
 #include "SoundPlayer.hpp"
 #include <cstddef>
 #include <filesystem>
@@ -10,7 +10,7 @@
 
 struct ImVec2;
 
-std::string find_resource_path(const std::string&);
+std::string find_resource_path(const std::string &);
 std::optional<fs::path> get_home_directory();
 
 namespace fs = std::filesystem;
@@ -28,6 +28,7 @@ class App {
   size_t selected_index = 0;
   size_t parent_highlight = 0; // index in parent_entries matching current_path
   bool selection_changed = true;
+  bool show_hidden = false;
 
   static constexpr float padding = 10.0f;
   static constexpr float header_height = 48.0f;

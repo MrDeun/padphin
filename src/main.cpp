@@ -79,6 +79,9 @@ int main(int arg_count, char **args) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
   io.IniFilename = nullptr;
   auto font_path = find_resource_path("font/BigBlueTerm.ttf");
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f);
