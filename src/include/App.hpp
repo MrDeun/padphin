@@ -1,5 +1,6 @@
 #pragma once
 #include "Clipboard.hpp"
+#include "EntryHighlight.hpp"
 #include "IControl.hpp"
 #include "IconLoader.hpp"
 #include "SoundPlayer.hpp"
@@ -8,13 +9,11 @@
 #include <memory>
 #include <vector>
 
-struct ImVec2;
-
-std::string find_resource_path(const std::string &);
+fs::path find_resource_path(const std::string &);
+fs::path expand_tilde(const std::string& path); 
 std::optional<fs::path> get_home_directory();
 
 namespace fs = std::filesystem;
-
 class App {
   std::unique_ptr<IControl> control_;
   Input last_input{};
@@ -68,6 +67,11 @@ class App {
 
   // Loaded icon textures for the footer hints.
 
+  // Sliding highlight bars, one per Miller column.
+  EntryHighlight parent_highlight_{};
+  EntryHighlight current_highlight_{};
+  EntryHighlight preview_highlight_{};
+
   void load_icons();
   void load_sounds();
   void populate_entries();
@@ -79,6 +83,7 @@ class App {
   void render_entry_list(const char *child_id,
                          const std::vector<fs::directory_entry> &list,
                          int highlight_index, bool is_active,
+                         EntryHighlight &highlight,
                          bool *scrolled_to_highlight);
   void render_file_preview(const char *child_id, const fs::directory_entry &e);
   void render_footer(const ImVec2 &window_pos, const ImVec2 &window_size);

@@ -2,6 +2,7 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "imgui.h"
+#include "im_anim.h"
 
 #include <GL/gl.h>
 
@@ -22,19 +23,8 @@ fs::path get_initial_path(int arg_count, char **args) {
   if (arg_count > 1) {
     std::error_code ec{};
     std::string args_path = args[1];
-    if (args_path[0] == '~') {
-      auto home_dir = get_home_directory();
-      if (home_dir.has_value()) {
-        logd("{}", args_path);
-        args_path.replace(0, 1, home_dir.value());
-        args_path.append("/");
-        logd("{}", args_path);
-      } else {
-        logw("Could not find viable substitue for '~'");
-      }
-    }
     logd("{}", args_path);
-    initial_path = fs::absolute(args_path, ec);
+    initial_path = fs::absolute(expand_tilde(args_path), ec);
     if (ec || initial_path.has_filename()) {
       logw("Error processioning provided path. Defaulting to "
            "'.'. Reason: {}",
@@ -123,6 +113,10 @@ int main(int arg_count, char **args) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+
+    // ImAnim: advance the animation clock before anything animates this frame.
+    iam_update_begin_frame();
+    iam_clip_update(io.DeltaTime);
 
     app.poll_input();
     app.update_state();

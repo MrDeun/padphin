@@ -91,7 +91,7 @@ std::string human_size(std::uintmax_t bytes) {
   return fmt::format("{:.1f} {}", size, units[unit]);
 }
 
-std::string find_resource_path(const std::string &relative) {
+fs::path find_resource_path(const std::string &relative) {
   // Try common locations relative to the executable.
   std::string exe_dir = get_exe_dir();
 
@@ -107,6 +107,27 @@ std::string find_resource_path(const std::string &relative) {
   }
   loge("Resources folder is missing");
   exit(EXIT_FAILURE);
+}
+
+fs::path expand_tilde(const std::string &path) {
+  if (path.empty() || path[0] != '~')
+    return path;
+
+  // Only handle "~" and "~/..." (not "~user/...")
+  if (path.size() > 1 && path[1] != '/' && path[1] != '\\')
+    return path;
+
+#ifdef _WIN32
+  const char *home = std::getenv("USERPROFILE");
+#else
+  const char *home = std::getenv("HOME");
+#endif
+  if (!home){
+    logw("Could not find $HOME enviroment variable"); 
+    return path; // or throw
+  }
+
+  return fs::path(home) / path.substr(path.size() > 1 ? 2 : 1);
 }
 
 std::vector<fs::directory_entry> App::list_dir(const fs::path &path) {
@@ -380,6 +401,7 @@ void App::render_header(const ImVec2 &window_pos, float window_width) {
 void App::render_entry_list(const char *child_id,
                             const std::vector<fs::directory_entry> &list,
                             int highlight_index, bool is_active,
+                            EntryHighlight &highlight,
                             bool *scrolled_to_highlight) {
   // Bound the child to the remaining cell space so tall rows scroll
   // instead of growing the table.
@@ -397,6 +419,14 @@ void App::render_entry_list(const char *child_id,
   ImGui::SetWindowFontScale(item_font_scale);
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, spacing_y));
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.0f, 0.5f));
+  // Drawn before the rows so the row text ends up on top of it; the rectangle
+  // it animates towards is captured from the rows further down.
+  highlight.draw(ImGui::GetID("##highlight"), is_active
+                                                  ? IM_COL32(0, 120, 160, 255)
+                                                  : IM_COL32(60, 60, 60, 255));
+  bool has_highlight = false;
+  ImVec2 highlight_min(0.0f, 0.0f);
+  ImVec2 highlight_max(0.0f, 0.0f);
   for (size_t i = 0; i < list.size(); ++i) {
     bool is_dir = false;
     std::string name = display_name(list[i], is_dir);
@@ -409,20 +439,24 @@ void App::render_entry_list(const char *child_id,
       ImGui::PushStyleColor(ImGuiCol_Text, is_dir
                                                ? IM_COL32(160, 140, 70, 255)
                                                : IM_COL32(150, 150, 150, 255));
-    if (highlighted)
-      ImGui::PushStyleColor(ImGuiCol_Header, is_active
-                                                 ? IM_COL32(0, 120, 160, 255)
-                                                 : IM_COL32(60, 60, 60, 255));
-    ImGui::Selectable(name.c_str(), highlighted, 0, ImVec2(0.0f, row_h));
-    if (highlighted)
-      ImGui::PopStyleColor(); // Header
-    ImGui::PopStyleColor();   // Text
-    if (highlighted && selection_changed && scrolled_to_highlight &&
-        !*scrolled_to_highlight) {
-      ImGui::SetScrollHereY(0.5f);
-      *scrolled_to_highlight = true;
+    // The highlight is drawn by EntryHighlight, not by the selectable itself.
+    ImGui::Selectable(name.c_str(), false, 0, ImVec2(0.0f, row_h));
+    ImGui::PopStyleColor(); // Text
+    if (highlighted) {
+      has_highlight = true;
+      highlight_min = ImGui::GetItemRectMin();
+      highlight_max = ImGui::GetItemRectMax();
+      if (selection_changed && scrolled_to_highlight &&
+          !*scrolled_to_highlight) {
+        ImGui::SetScrollHereY(0.5f);
+        *scrolled_to_highlight = true;
+      }
     }
   }
+  if (has_highlight)
+    highlight.set_target(highlight_min, highlight_max);
+  else
+    highlight.clear();
   if (list.empty()) {
     ImGui::TextDisabled("<empty>");
   }
@@ -515,7 +549,8 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
                    ? -1
                    : static_cast<int>(
                          std::min(parent_highlight, parent_entries.size() - 1));
-      render_entry_list("##parent_list", parent_entries, hl, false, &scrolled);
+      render_entry_list("##parent_list", parent_entries, hl, false,
+                        parent_highlight_, &scrolled);
       (void)col_avail;
     }
     // Current pane (ranger middle column, the active one).
@@ -528,7 +563,8 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
       ImGui::Separator();
       bool scrolled = false;
       int hl = entries.empty() ? -1 : static_cast<int>(selected_index);
-      render_entry_list("##current_list", entries, hl, true, &scrolled);
+      render_entry_list("##current_list", entries, hl, true, current_highlight_,
+                        &scrolled);
     }
     // Preview pane (ranger right column).
     ImGui::TableNextColumn();
@@ -544,7 +580,7 @@ void App::render_miller_columns(const ImVec2 &origin, const ImVec2 &avail) {
           ImGui::Separator();
           bool scrolled = true; // preview list starts at top, like ranger
           render_entry_list("##preview_list", preview_entries, selected_index,
-                            false, &scrolled);
+                            false, preview_highlight_, &scrolled);
         } else {
           render_file_preview("##file_preview", sel);
         }
