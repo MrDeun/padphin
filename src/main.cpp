@@ -1,8 +1,8 @@
 #include "GamepadControl.hpp"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl2.h"
-#include "imgui.h"
 #include "im_anim.h"
+#include "imgui.h"
 
 #include <GL/gl.h>
 
@@ -74,7 +74,7 @@ int main(int arg_count, char **args) {
   ImGuiIO &io = ImGui::GetIO();
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-  io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+  // io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
   io.IniFilename = nullptr;
   auto font_path = find_resource_path("font/BigBlueTerm.ttf");
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f);
@@ -92,6 +92,7 @@ int main(int arg_count, char **args) {
     v.push_back(std::move(gamepad));
     return std::move(v);
   }()));
+  app.set_io(&io);
   app.go_to(std::move(initial_path));
 
   bool running = true;

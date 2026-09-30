@@ -6,11 +6,12 @@
 #include "SoundPlayer.hpp"
 #include <cstddef>
 #include <filesystem>
+#include <imgui.h>
 #include <memory>
 #include <vector>
 
 fs::path find_resource_path(const std::string &);
-fs::path expand_tilde(const std::string& path); 
+fs::path expand_tilde(const std::string &path);
 std::optional<fs::path> get_home_directory();
 
 namespace fs = std::filesystem;
@@ -96,14 +97,17 @@ class App {
                          bool *scrolled_to_highlight);
   void render_file_preview(const char *child_id, const fs::directory_entry &e);
   void render_footer(const ImVec2 &window_pos, const ImVec2 &window_size);
-  void render_modal(const std::vector<fs::path>& clipboard_view);
+  void render_modal(const std::vector<fs::path> &clipboard_view);
 
   using SoundEffectId = size_t;
 
   SoundEffectId hover_id;
 
+  ImGuiIO *io = nullptr;
+
 public:
   void go_to(fs::path new_path);
+  void set_io(ImGuiIO *_io) { io = _io; }
   const fs::path &get_current_path() const { return current_path; }
   void poll_input();
   void update_state();

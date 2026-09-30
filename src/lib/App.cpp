@@ -21,6 +21,8 @@
 #include <unistd.h>
 #endif
 
+fs::path resource_path = "";
+
 std::optional<fs::path> get_home_directory() {
   fs::path res = "";
 
@@ -36,7 +38,7 @@ std::optional<fs::path> get_home_directory() {
 }
 
 // TODO - get OS-agnostic version of this function
-std::string get_exe_dir() {
+fs::path get_exe_dir() {
 #ifdef _WIN32
   wchar_t path[MAX_PATH] = {0};
   GetModuleFileNameW(NULL, path, MAX_PATH);
@@ -93,17 +95,23 @@ std::string human_size(std::uintmax_t bytes) {
 
 fs::path find_resource_path(const std::string &relative) {
   // Try common locations relative to the executable.
+  if (!resource_path.empty()) {
+    return resource_path / relative;
+  }
   std::string exe_dir = get_exe_dir();
-
+  logi("Executable at {}", exe_dir);
   std::string candidates[] = {
-      exe_dir + "/resources/" + relative,
-      exe_dir + "/../resources/" + relative,
-      exe_dir + "/../../resources/" + relative,
+      exe_dir + "/resources/",
+      exe_dir + "/../resources/",
+      exe_dir + "/../../resources/",
   };
   for (const auto &c : candidates) {
     std::error_code ec;
-    if (fs::is_regular_file(c, ec))
-      return c;
+    if (fs::is_regular_file(c + relative, ec)) {
+      logi("Settings resource path to {}", c);
+      resource_path = c;
+      return c + relative;
+    }
   }
   loge("Resources folder is missing");
   exit(EXIT_FAILURE);
