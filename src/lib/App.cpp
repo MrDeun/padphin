@@ -122,8 +122,8 @@ fs::path expand_tilde(const std::string &path) {
 #else
   const char *home = std::getenv("HOME");
 #endif
-  if (!home){
-    logw("Could not find $HOME enviroment variable"); 
+  if (!home) {
+    logw("Could not find $HOME enviroment variable");
     return path; // or throw
   }
 
@@ -295,6 +295,23 @@ void App::poll_input() { last_input = control_->poll(); }
 void App::update_state() {
   Dir dir = last_input.dir;
   uint8_t btn = last_input.button;
+
+  // Handled before the empty-directory early return so the menu stays
+  // reachable in an empty folder.
+  if (btn & Input::OPEN_MENU_BAR) {
+    active_menu = !active_menu;
+    // Only latch an open request; the close is driven by active_menu below.
+    menu_open_request = active_menu;
+  }
+
+  // The modal owns input while it is open, so the browser does not scroll or
+  // navigate behind it.
+  if (active_menu) {
+    if (btn & Input::DENY)
+      active_menu = false;
+    last_input = {};
+    return;
+  }
 
   if (entries.empty()) {
     if (dir == Dir::Left || (btn & Input::DENY)) {
@@ -709,6 +726,11 @@ void App::render() {
   ImGui::GetWindowDrawList()->PopClipRect();
 
   render_footer(window_pos, window_size);
+
+  // Called unconditionally: render_modal is a no-op while the popup is closed,
+  // but it also needs a frame inside Begin/EndPopup to observe a close request
+  // coming from update_state().
+  render_modal(_clipboard.items);
 
   selection_changed = false;
   ImGui::End();

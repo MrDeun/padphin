@@ -6,7 +6,7 @@ add_requires("fmtlog")
 add_requires("nanosvg")
 
 target("padphin")
-    add_packages("imgui", "fmtlog", "nanosvg","libsdl2_mixer")
+    add_packages("imgui","fmtlog", "nanosvg","libsdl2_mixer")
     set_kind("binary")
     add_includedirs("src/include")
     add_files("src/lib/*.cpp")

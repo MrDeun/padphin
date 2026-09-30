@@ -28,6 +28,15 @@ class App {
   size_t parent_highlight = 0; // index in parent_entries matching current_path
   bool selection_changed = true;
   bool show_hidden = false;
+  bool active_menu = false;
+  // One-shot latch consumed by render_modal: ImGui::OpenPopup() must only be
+  // called on the frame the menu is requested, never every frame.
+  bool menu_open_request = false;
+
+  // Shared by ImGui::OpenPopup()/BeginPopupModal() so both resolve to the same
+  // ID. Popups are relative to the current ID stack, so they have to be
+  // invoked from the same level.
+  static constexpr const char *menu_popup_id = "Menu";
 
   static constexpr float padding = 10.0f;
   static constexpr float header_height = 48.0f;
@@ -87,6 +96,7 @@ class App {
                          bool *scrolled_to_highlight);
   void render_file_preview(const char *child_id, const fs::directory_entry &e);
   void render_footer(const ImVec2 &window_pos, const ImVec2 &window_size);
+  void render_modal(const std::vector<fs::path>& clipboard_view);
 
   using SoundEffectId = size_t;
 
